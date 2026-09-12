@@ -100,11 +100,36 @@ function App() {
 
   return (
     <div style={{ background: "#EEF0E7", minHeight: "100vh", padding: "18px 16px 40px", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-        <span style={{ fontSize: 20 }}>🐾</span>
-        <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 500, margin: 0, color: "#1E2B22" }}>
-          Training tracker
-        </h1>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 20 }}>🐾</span>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 500, margin: 0, color: "#1E2B22" }}>
+            Training tracker
+          </h1>
+        </div>
+        {activeDog && (
+          <button
+            onClick={() => setView("profile")}
+            aria-label={`${activeDog.name}'s profile`}
+            style={{
+              width: 40,
+              height: 40,
+              flexShrink: 0,
+              padding: 0,
+              borderRadius: "50%",
+              border: `2px solid ${accent}`,
+              background: activeDog.photo ? `url(${activeDog.photo})` : accentLight,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            {!activeDog.photo && <span style={{ fontSize: 16 }}>🐾</span>}
+          </button>
+        )}
       </div>
 
       {state.dogs.length === 0 ? (
