@@ -45,11 +45,18 @@ async function callAIProvider({ provider, apiKey, model }, prompt) {
   }
 
   if (provider === "gemini") {
+    // Key goes in a header, not the query string: URLs get written to browser
+    // history and server logs in a way that request headers don't. The model
+    // name is encoded because it comes from a free-text field, and a stray
+    // "?" or "#" in it would otherwise change what URL we actually request.
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
     );

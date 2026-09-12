@@ -15,22 +15,51 @@
 
 <link rel="stylesheet" href="style.css" />
 
-<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<!--
+  The `integrity` fingerprints below are what make loading these from a CDN safe:
+  the browser refuses to run a file whose contents don't hash to exactly this
+  value, so a tampered or swapped-out CDN file can't execute here. If you ever
+  bump a version, the fingerprint must be regenerated to match it.
+-->
+<script
+  src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"
+  integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"
+  crossorigin="anonymous"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"
+  integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"
+  crossorigin="anonymous"></script>
 <!-- Lets us write the app below as plain JSX with no install/build step: -->
 <!-- this transforms it to JS in the browser right before it runs. -->
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"
+  integrity="sha384-AISI5AuDG6E8DeEiFMVB3rGQxhZt24OU0avMp+GMV64+tpnA3+Z6F5MT0f96iPva"
+  crossorigin="anonymous"></script>
 <script>
+  // Built with textContent rather than innerHTML so an error message can never
+  // be treated as markup.
   window.addEventListener("error", function (e) {
     var root = document.getElementById("root");
-    if (root && !root.dataset.mounted) {
-      root.innerHTML =
-        '<div style="padding:24px 20px;font-family:sans-serif;color:#1E2B22;">' +
-        '<div style="font-weight:600;margin-bottom:8px;">Something failed to load</div>' +
-        '<div style="font-size:13px;color:#5B6459;margin-bottom:14px;">' + (e.message || "Unknown error") + '</div>' +
-        '<div style="font-size:13px;color:#5B6459;">Try reloading. If this keeps happening, check your internet connection.</div>' +
-        '</div>';
+    if (!root || root.dataset.mounted) return;
+
+    function line(text, style) {
+      var el = document.createElement("div");
+      el.setAttribute("style", style);
+      el.textContent = text;
+      return el;
     }
+
+    var box = document.createElement("div");
+    box.setAttribute("style", "padding:24px 20px;font-family:sans-serif;color:#1E2B22;");
+    box.appendChild(line("Something failed to load", "font-weight:600;margin-bottom:8px;"));
+    box.appendChild(line(e.message || "Unknown error", "font-size:13px;color:#5B6459;margin-bottom:14px;"));
+    box.appendChild(line(
+      "Try reloading. If this keeps happening, check your internet connection.",
+      "font-size:13px;color:#5B6459;"
+    ));
+
+    root.textContent = "";
+    root.appendChild(box);
   });
 </script>
 </head>
