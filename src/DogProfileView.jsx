@@ -1,53 +1,21 @@
-// Per-dog profile: photo, name and birthday. Photos are downscaled client-side
-// before being stored so they don't blow past localStorage's size limits.
-
-const { useRef } = React;
-
-const MAX_PHOTO_DIMENSION = 480;
-
-function readAndResizeImage(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > height && width > MAX_PHOTO_DIMENSION) {
-          height = Math.round((height * MAX_PHOTO_DIMENSION) / width);
-          width = MAX_PHOTO_DIMENSION;
-        } else if (height > MAX_PHOTO_DIMENSION) {
-          width = Math.round((width * MAX_PHOTO_DIMENSION) / height);
-          height = MAX_PHOTO_DIMENSION;
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
+// Per-dog profile: photo, name and birthday. Uploading a photo opens
+// ImageCropModal so the user picks their own circular crop, LinkedIn-style,
+// instead of an automatic center-crop.
 
 function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
   const fileInputRef = useRef(null);
-  const [photoError, setPhotoError] = useState(false);
+  const [cropSrc, setCropSrc] = useState(null);
 
-  const handlePhotoChange = async (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     e.target.value = "";
     if (!file) return;
-    setPhotoError(false);
-    try {
-      const dataUrl = await readAndResizeImage(file);
-      onUpdateDog({ photo: dataUrl });
-    } catch (err) {
-      setPhotoError(true);
-    }
+    setCropSrc(URL.createObjectURL(file));
+  };
+
+  const closeCrop = () => {
+    URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
   };
 
   const age = ageFromBirthday(dog.birthday);
@@ -101,10 +69,6 @@ function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
           onChange={handlePhotoChange}
           style={{ display: "none" }}
         />
-        {photoError && (
-          <p style={{ color: "#B5432E", fontSize: 12, marginTop: 2 }}>Couldn't read that image. Try another one.</p>
-        )}
-
         <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 500, margin: "6px 0 2px", color: "#1E2B22" }}>
           {dog.name}
         </h2>
@@ -123,6 +87,17 @@ function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
         <p style={{ color: "#8B8F7F", fontSize: 12, marginTop: 6 }}>
           Add a birthday to see {dog.name}'s age here.
         </p>
+      )}
+
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          onCancel={closeCrop}
+          onConfirm={(dataUrl) => {
+            closeCrop();
+            onUpdateDog({ photo: dataUrl });
+          }}
+        />
       )}
     </div>
   );

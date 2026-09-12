@@ -1,6 +1,6 @@
 // Small, reusable UI pieces shared by the bigger screens/modals.
 
-const { useState } = React;
+const { useState, useRef } = React;
 
 function ScalePicker({ value, onChange }) {
   return (
