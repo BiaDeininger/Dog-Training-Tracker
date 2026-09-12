@@ -7,7 +7,7 @@ A private, installable web app for logging and tracking dog training sessions â€
 ## For a friend: how to install it
 
 1. **Open the app link** in your phone's browser (Safari on iPhone, Chrome on Android):
-   `https://biadeininger.github.io/dog-training-tracker/`
+   'https://biadeininger.github.io/Dog-Training-Tracker/'
 
 2. **Add it to your home screen:**
    - **iPhone (Safari):** tap the Share icon â†’ **Add to Home Screen**
