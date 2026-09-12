@@ -12,6 +12,12 @@ function App() {
   const [aiConfig, setAiConfig] = useState(loadAIConfig);
   const [showAISettings, setShowAISettings] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [backupMeta, setBackupMeta] = useState(loadBackupMeta);
+  const [showBackupReminder, setShowBackupReminder] = useState(() => {
+    const due = isBackupReminderDue(backupMeta, state.entries.length);
+    if (due) recordBackupPrompted(backupMeta);
+    return due;
+  });
   const [drag, setDrag] = useState(null); // { id, order, startY, deltaY }
   const categoryRefs = useRef({});
   const pendingLongPress = useRef(null); // { catId, order, startX, startY, pointerId, el }
@@ -177,6 +183,20 @@ function App() {
 
   const deleteEntry = (entryId) => {
     persist({ ...state, entries: state.entries.filter((e) => e.id !== entryId) });
+  };
+
+  const exportBackup = () => {
+    downloadBackupFile(state);
+    setBackupMeta(recordBackupExported(backupMeta, state.entries.length));
+    setShowBackupReminder(false);
+  };
+
+  const importBackup = ({ dogs, categories, entries }) => {
+    const next = { dogs, categories, entries };
+    persist(next);
+    setActiveDogId(next.dogs[0]?.id || null);
+    setBackupMeta(recordBackupExported(backupMeta, entries.length));
+    setShowBackupReminder(false);
   };
 
   return (
@@ -427,8 +447,19 @@ function App() {
       )}
 
       {showManageDogs && (
-        <ManageDogsModal dogs={state.dogs} onClose={() => setShowManageDogs(false)} onAdd={addDog} onRename={renameDog} onDelete={deleteDog} />
+        <ManageDogsModal
+          dogs={state.dogs}
+          onClose={() => setShowManageDogs(false)}
+          onAdd={addDog}
+          onRename={renameDog}
+          onDelete={deleteDog}
+          lastBackupAt={backupMeta.lastBackupAt}
+          onExport={exportBackup}
+          onImport={importBackup}
+        />
       )}
+
+      {showBackupReminder && <BackupReminderModal onExport={exportBackup} onDismiss={() => setShowBackupReminder(false)} />}
 
       {showAISettings && (
         <AISettingsModal
