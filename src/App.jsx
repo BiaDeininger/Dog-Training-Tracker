@@ -109,6 +109,7 @@ function App() {
         </div>
         {activeDog && (
           <button
+            key={`avatar-${activeDog.id}-${activeDog.photo ? activeDog.photo.length : 0}`}
             onClick={() => setView("profile")}
             aria-label={`${activeDog.name}'s profile`}
             style={{
@@ -118,7 +119,8 @@ function App() {
               padding: 0,
               borderRadius: "50%",
               border: `2px solid ${accent}`,
-              background: activeDog.photo ? `url(${activeDog.photo})` : accentLight,
+              backgroundColor: accentLight,
+              backgroundImage: activeDog.photo ? `url(${activeDog.photo})` : "none",
               backgroundSize: "cover",
               backgroundPosition: "center",
               display: "flex",

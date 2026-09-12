@@ -74,6 +74,7 @@ function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
     <div>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 26 }}>
         <div
+          key={`profile-photo-${dog.id}-${dog.photo ? dog.photo.length : 0}`}
           onClick={openPhoto}
           role="button"
           aria-label={dog.photo ? (canAdjustCrop ? "Adjust photo crop" : "Change photo") : "Add photo"}
@@ -81,7 +82,8 @@ function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
             width: 148,
             height: 148,
             borderRadius: "50%",
-            background: dog.photo ? `url(${dog.photo})` : accentLight,
+            backgroundColor: accentLight,
+            backgroundImage: dog.photo ? `url(${dog.photo})` : "none",
             backgroundSize: "cover",
             backgroundPosition: "center",
             border: `3px solid ${accent}`,
