@@ -21,6 +21,31 @@ function daysSince(dateStr) {
   return Math.floor((now - then) / (1000 * 60 * 60 * 24));
 }
 
+function ageFromBirthday(birthday) {
+  if (!birthday) return null;
+  const bd = new Date(birthday + "T00:00:00");
+  const now = new Date();
+  if (Number.isNaN(bd.getTime()) || bd > now) return null;
+
+  let years = now.getFullYear() - bd.getFullYear();
+  let months = now.getMonth() - bd.getMonth();
+  if (now.getDate() < bd.getDate()) months--;
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  if (years <= 0 && months <= 0) {
+    const days = Math.floor((now - bd) / (1000 * 60 * 60 * 24));
+    if (days < 14) return `${days} day${days === 1 ? "" : "s"} old`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks} week${weeks === 1 ? "" : "s"} old`;
+  }
+  if (years === 0) return `${months} month${months === 1 ? "" : "s"} old`;
+  if (months === 0) return `${years} year${years === 1 ? "" : "s"} old`;
+  return `${years}y ${months}m old`;
+}
+
 function fieldTrend(entries, categoryId, fieldId) {
   const vals = entries
     .filter((e) => e.categoryId === categoryId && e.values[fieldId] !== undefined && e.values[fieldId] !== "")

@@ -33,7 +33,7 @@ function App() {
   const dogCategories = state.categories.filter((c) => c.dogId === activeDog?.id);
 
   const addDog = (name) => {
-    const newDog = { id: uid(), name };
+    const newDog = { id: uid(), name, photo: null, birthday: null };
     const withDog = { ...state, dogs: [...state.dogs, newDog] };
     const { state: patched } = ensureCoreCategories(withDog);
     persist(patched);
@@ -42,6 +42,10 @@ function App() {
 
   const renameDog = (dogId, name) => {
     persist({ ...state, dogs: state.dogs.map((d) => (d.id === dogId ? { ...d, name } : d)) });
+  };
+
+  const updateDog = (dogId, patch) => {
+    persist({ ...state, dogs: state.dogs.map((d) => (d.id === dogId ? { ...d, ...patch } : d)) });
   };
 
   const deleteDog = (dogId) => {
@@ -136,6 +140,21 @@ function App() {
                     cursor: "pointer",
                   }}
                 >
+                  {d.photo && (
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        backgroundImage: `url(${d.photo})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        marginRight: 7,
+                        verticalAlign: "middle",
+                      }}
+                    />
+                  )}
                   {d.name}
                 </button>
               );
@@ -157,7 +176,7 @@ function App() {
           </button>
 
           <div style={{ display: "flex", gap: 4, marginBottom: 18, background: "#E4E6DA", borderRadius: 10, padding: 3 }}>
-            {[{ key: "log", label: "Log" }, { key: "insights", label: "Insights" }].map((t) => (
+            {[{ key: "profile", label: "Profile" }, { key: "log", label: "Log" }, { key: "insights", label: "Insights" }].map((t) => (
               <button
                 key={t.key}
                 onClick={() => setView(t.key)}
@@ -178,7 +197,16 @@ function App() {
             ))}
           </div>
 
-          {view === "log" ? (
+          {view === "profile" ? (
+            activeDog && (
+              <DogProfileView
+                dog={activeDog}
+                accent={accent}
+                accentLight={accentLight}
+                onUpdateDog={(patch) => updateDog(activeDog.id, patch)}
+              />
+            )
+          ) : view === "log" ? (
             <React.Fragment>
               {dogCategories.length === 0 && (
                 <p style={{ color: "#5B6459", fontSize: 14, marginBottom: 16 }}>
