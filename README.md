@@ -4,10 +4,10 @@ A private, installable web app for logging and tracking dog training sessions �
 
 ---
 
-## For a friend: how to install it
+## For friends: how to install it
 
 1. **Open the app link** in your phone's browser (Safari on iPhone, Chrome on Android):
-   'https://biadeininger.github.io/Dog-Training-Tracker/'
+   [biadeininger.github.io/Dog-Training-Tracker](https://biadeininger.github.io/Dog-Training-Tracker/)
 
 2. **Add it to your home screen:**
    - **iPhone (Safari):** tap the Share icon → **Add to Home Screen**
@@ -28,9 +28,9 @@ Everything you log is saved only in your own phone's browser storage. It is not 
 In the **Insights** tab, under "Notes insights," you can connect your *own* API key from Claude, Gemini, or ChatGPT to get automatic pattern-spotting from your free-text notes. This is entirely optional — everything else works without it. Your key is stored only on your device and sent directly to that provider, never through this app's code or repo.
 
 Get a key at:
-- Claude: console.anthropic.com/settings/keys
-- Gemini (has a free tier): aistudio.google.com/apikey
-- ChatGPT: platform.openai.com/api-keys
+- Claude: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- Gemini (has a free tier): [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+- ChatGPT: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
 ---
 
@@ -39,7 +39,7 @@ Get a key at:
 Found a bug or have an improvement idea? Pull requests welcome.
 
 1. **Branch or fork** this repository.
-2. Make your changes — see "Project structure" below for where things live. It's plain HTML + React (JSX), no build step: edit a file, open `index.html` in a browser, done.
+2. Make your changes — see "Project structure" below for where things live. It's plain HTML + React (JSX) with no build step — edit a file, open `index.html` in a browser, done.
 3. Commit your changes and **open a Pull Request** back to this repo, describing what you changed and why.
 4. The repo owner will review and merge if it looks good.
 
@@ -55,7 +55,7 @@ icon-192.png, icon-512.png — home screen icons
 
 src/storage.js             — localStorage read/write, seed data for new dogs
 src/ai.js                  — calls to the Claude/Gemini/ChatGPT APIs for notes analysis
-src/utils.js                — date/trend helpers, shared style constants
+src/utils.js               — date/trend helpers, shared style constants
 src/ui.jsx                 — small reusable bits: ScalePicker, Modal, MiniChart, TrendArrow
 src/CategoryCard.jsx       — one training's card on the Log tab
 src/AddCategoryModal.jsx   — "new training" form
