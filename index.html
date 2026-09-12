@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="Dog Training" />
 <meta name="theme-color" content="#4C6B4F" />
 
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=4" />
 
 <!--
   The `integrity` fingerprints below are what make loading these from a CDN safe:
@@ -73,19 +73,25 @@
   in pull requests. They all run as plain (non-module) scripts sharing one
   global scope, in this load order, so later files can use anything defined
   by earlier ones — see the comment at the top of each file for what it owns.
+
+  The "?v=" on each one is a cache-buster: browsers (and GitHub Pages' CDN)
+  can hold on to an old copy of these files well after a new version is
+  live, since nothing about the URL itself changed. Bumping this number on
+  any change to src/ forces every visitor to fetch the new file instead of
+  a stale cached one.
 -->
-<script type="text/babel" data-presets="react" src="src/utils.js"></script>
-<script type="text/babel" data-presets="react" src="src/storage.js"></script>
-<script type="text/babel" data-presets="react" src="src/ai.js"></script>
-<script type="text/babel" data-presets="react" src="src/ui.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/CategoryCard.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/AddCategoryModal.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/AddEntryModal.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/AISettingsModal.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/ManageDogsModal.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/ImageCropModal.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/DogProfileView.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/AnalysisView.jsx"></script>
-<script type="text/babel" data-presets="react" src="src/App.jsx"></script>
+<script type="text/babel" data-presets="react" src="src/utils.js?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/storage.js?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/ai.js?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/ui.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/CategoryCard.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/AddCategoryModal.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/AddEntryModal.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/AISettingsModal.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/ManageDogsModal.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/ImageCropModal.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/DogProfileView.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/AnalysisView.jsx?v=4"></script>
+<script type="text/babel" data-presets="react" src="src/App.jsx?v=4"></script>
 </body>
 </html>

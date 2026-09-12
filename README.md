@@ -45,6 +45,8 @@ Found a bug or have an improvement idea? Pull requests welcome.
 
 Once merged, the live app updates automatically — no need to reinstall or do anything on your phone. Since the app always loads fresh from the web (it doesn't cache an offline copy), you'll see the update the next time you open it with an internet connection.
 
+If your change touches any file under `src/` or `style.css`, bump the `?v=N` number on every `<script>`/`<link>` tag in `index.html` that loads them. Without that, browsers (and GitHub Pages' own CDN) can keep serving an old cached copy of those files for a while after the new version is live.
+
 ### Project structure
 
 ```
