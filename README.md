@@ -74,6 +74,7 @@ src/AddEntryModal.jsx      — "log a session" form
 src/AISettingsModal.jsx    — AI provider key setup
 src/ManageDogsModal.jsx    — add/rename/delete dogs, backup export/import
 src/BackupReminderModal.jsx — periodic "back up your data" reminder popup
+src/AboutModal.jsx         — "About this app" info panel (data storage, backup, repo link)
 src/AnalysisView.jsx       — the Insights tab
 src/App.jsx                — top-level app state and layout; mounts the app
 ```
