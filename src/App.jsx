@@ -201,7 +201,7 @@ function App() {
           </button>
 
           <div style={{ display: "flex", gap: 4, marginBottom: 18, background: "#E4E6DA", borderRadius: 10, padding: 3 }}>
-            {[{ key: "profile", label: "Profile" }, { key: "log", label: "Log" }, { key: "insights", label: "Insights" }].map((t) => (
+            {[{ key: "log", label: "Log" }, { key: "insights", label: "Insights" }].map((t) => (
               <button
                 key={t.key}
                 onClick={() => setView(t.key)}
