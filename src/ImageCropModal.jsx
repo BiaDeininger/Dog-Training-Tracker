@@ -128,14 +128,24 @@ function ImageCropModal({ src, initialZoom, initialPos, onCancel, onConfirm }) {
   };
 
   const handleConfirm = () => {
+    // Read the image's actual painted position/size straight off the DOM
+    // rather than trusting the `pos`/`scale` React state, so what gets baked
+    // can never drift from what's on screen the instant "Use photo" is
+    // tapped — even if a touch device delivers its last gesture events in a
+    // way that outpaces a state update.
+    const img = imgElRef.current;
+    const liveScale = parseFloat(img.style.width) / natural.width;
+    const liveLeft = parseFloat(img.style.left);
+    const liveTop = parseFloat(img.style.top);
+    const sourceSize = CROP_SIZE / liveScale;
+
     const canvas = document.createElement("canvas");
     canvas.width = OUTPUT_SIZE;
     canvas.height = OUTPUT_SIZE;
-    const sourceSize = CROP_SIZE / scale;
     canvas
       .getContext("2d")
-      .drawImage(imgElRef.current, -pos.x / scale, -pos.y / scale, sourceSize, sourceSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-    onConfirm(canvas.toDataURL("image/jpeg", 0.85), { zoom, pos });
+      .drawImage(img, -liveLeft / liveScale, -liveTop / liveScale, sourceSize, sourceSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    onConfirm(canvas.toDataURL("image/jpeg", 0.85), { zoom: liveScale / baseScale, pos: { x: liveLeft, y: liveTop } });
   };
 
   return (
