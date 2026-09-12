@@ -8,6 +8,7 @@ function CategoryCard({
   accent,
   accentLight,
   onAddEntry,
+  onEditEntry,
   onDeleteEntry,
   onDeleteCategory,
   onMoveUp,
@@ -114,11 +115,20 @@ function CategoryCard({
           {sorted.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {sorted.slice().reverse().map((e) => (
-                <div key={e.id} style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>
+                <div
+                  key={e.id}
+                  onClick={() => onEditEntry(e)}
+                  role="button"
+                  aria-label="Edit entry"
+                  style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: "10px 12px", fontSize: 13, cursor: "pointer" }}
+                >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDate(e.date)}</div>
                     <button
-                      onClick={() => onDeleteEntry(e.id)}
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        onDeleteEntry(e.id);
+                      }}
                       aria-label="Delete entry"
                       style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", padding: 0, fontSize: 13 }}
                     >

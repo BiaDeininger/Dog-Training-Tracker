@@ -7,6 +7,7 @@ function App() {
   const [view, setView] = useState("log");
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [entryModalCategory, setEntryModalCategory] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [showManageDogs, setShowManageDogs] = useState(false);
   const [aiConfig, setAiConfig] = useState(loadAIConfig);
   const [showAISettings, setShowAISettings] = useState(false);
@@ -91,6 +92,14 @@ function App() {
   const addEntry = (categoryId, { date, values, notes }) => {
     const entry = { id: uid(), categoryId, date, values, notes };
     persist({ ...state, entries: [...state.entries, entry] });
+    setEntryModalCategory(null);
+  };
+
+  const updateEntry = (entryId, { date, values, notes }) => {
+    persist({
+      ...state,
+      entries: state.entries.map((e) => (e.id === entryId ? { ...e, date, values, notes } : e)),
+    });
     setEntryModalCategory(null);
   };
 
@@ -247,7 +256,14 @@ function App() {
                   entries={state.entries.filter((e) => e.categoryId === cat.id)}
                   accent={accent}
                   accentLight={accentLight}
-                  onAddEntry={() => setEntryModalCategory(cat)}
+                  onAddEntry={() => {
+                    setEntryModalCategory(cat);
+                    setEditingEntry(null);
+                  }}
+                  onEditEntry={(entry) => {
+                    setEntryModalCategory(cat);
+                    setEditingEntry(entry);
+                  }}
                   onDeleteEntry={deleteEntry}
                   onDeleteCategory={() => deleteCategory(cat.id)}
                   onMoveUp={() => moveCategory(cat.id, "up")}
@@ -308,8 +324,16 @@ function App() {
       {entryModalCategory && (
         <AddEntryModal
           category={entryModalCategory}
-          onClose={() => setEntryModalCategory(null)}
-          onSave={(payload) => addEntry(entryModalCategory.id, payload)}
+          entry={editingEntry}
+          onClose={() => {
+            setEntryModalCategory(null);
+            setEditingEntry(null);
+          }}
+          onSave={(payload) => {
+            if (editingEntry) updateEntry(editingEntry.id, payload);
+            else addEntry(entryModalCategory.id, payload);
+            setEditingEntry(null);
+          }}
         />
       )}
 

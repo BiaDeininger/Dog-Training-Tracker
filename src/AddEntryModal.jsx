@@ -1,15 +1,16 @@
-// Form for logging one training session against a category's fields.
+// Form for logging one training session against a category's fields, or
+// editing one that was already logged (pass its entry in via `entry`).
 
-function AddEntryModal({ category, onClose, onSave }) {
-  const [date, setDate] = useState(todayStr());
-  const [values, setValues] = useState({});
-  const [notes, setNotes] = useState("");
+function AddEntryModal({ category, entry, onClose, onSave }) {
+  const [date, setDate] = useState(entry?.date || todayStr());
+  const [values, setValues] = useState(entry?.values || {});
+  const [notes, setNotes] = useState(entry?.notes || "");
 
   const setVal = (fieldId, v) => setValues((old) => ({ ...old, [fieldId]: v }));
   const save = () => onSave({ date, values, notes: notes.trim() });
 
   return (
-    <Modal title={`Log: ${category.name}`} onClose={onClose}>
+    <Modal title={`${entry ? "Edit" : "Log"}: ${category.name}`} onClose={onClose}>
       <label style={labelStyle}>Date</label>
       <input
         type="date"
@@ -68,7 +69,7 @@ function AddEntryModal({ category, onClose, onSave }) {
           cursor: "pointer",
         }}
       >
-        Save entry
+        {entry ? "Save changes" : "Save entry"}
       </button>
     </Modal>
   );
