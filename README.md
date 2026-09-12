@@ -21,7 +21,16 @@ That's it. No sign-up, no login.
 
 ### Your data is private and local
 
-Everything you log is saved only in your own phone's browser storage. It is not sent anywhere, not synced, and not visible to anyone else using this same app link — including whoever shared it with you. If you clear your browser's site data or switch phones, you'll need to export/re-enter your data (there's currently no cloud backup).
+Everything you log is saved only in your own phone's browser storage. It is not sent anywhere, not synced, and not visible to anyone else using this same app link — including whoever shared it with you. If you clear your browser's site data or switch phones, that data is gone unless you've exported a backup first.
+
+### Backing up and restoring your data
+
+Under **Manage dogs**, there's a **Backup your data** section:
+
+- **Export backup** downloads a `.json` file with all your dogs, trainings and logged sessions.
+- **Import backup** loads one of those files back in, replacing whatever is currently on the device.
+
+The app will also pop up a reminder to back up every couple of weeks, or after every 10th session you log, if you haven't exported recently. There's still no cloud sync — you're responsible for keeping that exported file somewhere safe (email it to yourself, save it to cloud storage, etc.) and re-importing it after clearing data or setting up a new phone.
 
 ### Optional: AI notes analysis
 
@@ -63,7 +72,8 @@ src/CategoryCard.jsx       — one training's card on the Log tab
 src/AddCategoryModal.jsx   — "new training" form
 src/AddEntryModal.jsx      — "log a session" form
 src/AISettingsModal.jsx    — AI provider key setup
-src/ManageDogsModal.jsx    — add/rename/delete dogs
+src/ManageDogsModal.jsx    — add/rename/delete dogs, backup export/import
+src/BackupReminderModal.jsx — periodic "back up your data" reminder popup
 src/AnalysisView.jsx       — the Insights tab
 src/App.jsx                — top-level app state and layout; mounts the app
 ```
@@ -77,5 +87,5 @@ No build tools, no dependencies to install, no backend. Data lives entirely in e
 ## Known limitations
 
 - **No cross-device sync** — data is tied to one browser on one device.
-- **No cloud backup** — clearing browser data or site storage loses your entries.
+- **No automatic cloud backup** — clearing browser data or site storage loses your entries unless you've exported a backup file (see "Backing up and restoring your data" above) and re-import it.
 - **AI notes analysis requires your own API key** — this app doesn't provide one.
