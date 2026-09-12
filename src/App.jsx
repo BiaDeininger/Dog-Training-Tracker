@@ -9,6 +9,7 @@ function App() {
   const [entryModalCategory, setEntryModalCategory] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [showManageDogs, setShowManageDogs] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [aiConfig, setAiConfig] = useState(loadAIConfig);
   const [showAISettings, setShowAISettings] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -208,31 +209,51 @@ function App() {
             Training tracker
           </h1>
         </div>
-        {activeDog && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
-            key={`avatar-${activeDog.id}-${activeDog.photo ? activeDog.photo.length : 0}`}
-            onClick={() => setView("profile")}
-            aria-label={`${activeDog.name}'s profile`}
+            onClick={() => setShowAbout(true)}
+            aria-label="About this app"
             style={{
-              width: 40,
-              height: 40,
+              width: 30,
+              height: 30,
               flexShrink: 0,
               padding: 0,
               borderRadius: "50%",
-              border: `2px solid ${accent}`,
-              backgroundColor: accentLight,
-              backgroundImage: activeDog.photo ? `url(${activeDog.photo})` : "none",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              border: "1px solid #D7DACB",
+              background: "transparent",
+              color: "#5B6459",
+              fontSize: 15,
               cursor: "pointer",
             }}
           >
-            {!activeDog.photo && <span style={{ fontSize: 16 }}>🐾</span>}
+            ⓘ
           </button>
-        )}
+          {activeDog && (
+            <button
+              key={`avatar-${activeDog.id}-${activeDog.photo ? activeDog.photo.length : 0}`}
+              onClick={() => setView("profile")}
+              aria-label={`${activeDog.name}'s profile`}
+              style={{
+                width: 40,
+                height: 40,
+                flexShrink: 0,
+                padding: 0,
+                borderRadius: "50%",
+                border: `2px solid ${accent}`,
+                backgroundColor: accentLight,
+                backgroundImage: activeDog.photo ? `url(${activeDog.photo})` : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              {!activeDog.photo && <span style={{ fontSize: 16 }}>🐾</span>}
+            </button>
+          )}
+        </div>
       </div>
 
       {state.dogs.length === 0 ? (
@@ -460,6 +481,8 @@ function App() {
       )}
 
       {showBackupReminder && <BackupReminderModal onExport={exportBackup} onDismiss={() => setShowBackupReminder(false)} />}
+
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
       {showAISettings && (
         <AISettingsModal
