@@ -1,6 +1,7 @@
 // The collapsible card for one training (e.g. "Loose leash walking") on the
 // Log tab: shows its history, a mini chart per numeric field, and lets you
-// log a new session or delete the training.
+// log a new session or delete the training. Reordering is a long-press drag
+// on the "⠿" handle, driven by the parent (App owns the category order).
 
 function CategoryCard({
   category,
@@ -11,10 +12,7 @@ function CategoryCard({
   onEditEntry,
   onDeleteEntry,
   onDeleteCategory,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
+  dragHandleProps,
 }) {
   const [open, setOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -41,26 +39,20 @@ function CategoryCard({
 
         <div style={{ display: "flex", alignItems: "center", gap: 0, marginLeft: 6 }}>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveUp();
+            {...dragHandleProps}
+            aria-label="Drag to reorder"
+            style={{
+              border: "none",
+              background: "transparent",
+              padding: "6px 8px",
+              cursor: "grab",
+              color: "#5B6459",
+              fontSize: 18,
+              touchAction: "none",
+              lineHeight: 1,
             }}
-            disabled={isFirst}
-            aria-label="Move up"
-            style={{ border: "none", background: "transparent", padding: 6, cursor: isFirst ? "default" : "pointer", color: isFirst ? "#D7DACB" : "#5B6459", fontSize: 14 }}
           >
-            ▲
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveDown();
-            }}
-            disabled={isLast}
-            aria-label="Move down"
-            style={{ border: "none", background: "transparent", padding: 6, cursor: isLast ? "default" : "pointer", color: isLast ? "#D7DACB" : "#5B6459", fontSize: 14 }}
-          >
-            ▼
+            ⠿
           </button>
           <button
             onClick={() => setOpen((o) => !o)}

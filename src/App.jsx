@@ -12,6 +12,10 @@ function App() {
   const [aiConfig, setAiConfig] = useState(loadAIConfig);
   const [showAISettings, setShowAISettings] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [drag, setDrag] = useState(null); // { id, order, startY, deltaY }
+  const categoryRefs = useRef({});
+  const pendingLongPress = useRef(null); // { catId, order, startX, startY, pointerId, el }
+  const longPressTimer = useRef(null);
 
   const persist = (next) => {
     setStateRaw(next);
@@ -32,6 +36,82 @@ function App() {
   const accent = dogAccents[activeDog?.id]?.accent || "#4C6B4F";
   const accentLight = dogAccents[activeDog?.id]?.light || "#E3EADD";
   const dogCategories = state.categories.filter((c) => c.dogId === activeDog?.id);
+  const displayCategories = drag ? drag.order.map((id) => dogCategories.find((c) => c.id === id)) : dogCategories;
+
+  const LONG_PRESS_MS = 450;
+  const MOVE_CANCEL_PX = 8;
+
+  const clearPendingLongPress = () => {
+    clearTimeout(longPressTimer.current);
+    pendingLongPress.current = null;
+  };
+
+  const onDragHandlePointerDown = (catId, e) => {
+    e.preventDefault();
+    pendingLongPress.current = {
+      catId,
+      order: dogCategories.map((c) => c.id),
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerId: e.pointerId,
+      el: e.currentTarget,
+    };
+    longPressTimer.current = setTimeout(() => {
+      const pending = pendingLongPress.current;
+      if (!pending) return;
+      try {
+        pending.el.setPointerCapture(pending.pointerId);
+      } catch (err) {
+        // ignore — capture is a nice-to-have
+      }
+      if (navigator.vibrate) navigator.vibrate(12);
+      setDrag({ id: pending.catId, order: pending.order, startY: pending.startY, deltaY: 0, pointerId: pending.pointerId });
+      pendingLongPress.current = null;
+    }, LONG_PRESS_MS);
+  };
+
+  const onDragHandlePointerMove = (e) => {
+    if (drag) {
+      if (e.pointerId !== undefined && drag.pointerId !== undefined && e.pointerId !== drag.pointerId) return;
+      const deltaY = e.clientY - drag.startY;
+      const order = drag.order;
+      const idx = order.indexOf(drag.id);
+      let newIdx = idx;
+
+      if (deltaY > 0 && idx < order.length - 1) {
+        const nextEl = categoryRefs.current[order[idx + 1]];
+        const nextHeight = nextEl ? nextEl.offsetHeight : 60;
+        if (deltaY > nextHeight / 2) newIdx = idx + 1;
+      } else if (deltaY < 0 && idx > 0) {
+        const prevEl = categoryRefs.current[order[idx - 1]];
+        const prevHeight = prevEl ? prevEl.offsetHeight : 60;
+        if (-deltaY > prevHeight / 2) newIdx = idx - 1;
+      }
+
+      if (newIdx !== idx) {
+        const newOrder = [...order];
+        newOrder.splice(idx, 1);
+        newOrder.splice(newIdx, 0, drag.id);
+        setDrag({ ...drag, order: newOrder, startY: e.clientY, deltaY: 0 });
+      } else {
+        setDrag({ ...drag, deltaY });
+      }
+      return;
+    }
+
+    const pending = pendingLongPress.current;
+    if (!pending || pending.pointerId !== e.pointerId) return;
+    const dx = e.clientX - pending.startX;
+    const dy = e.clientY - pending.startY;
+    if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) clearPendingLongPress();
+  };
+
+  const onDragHandlePointerUp = () => {
+    clearPendingLongPress();
+    if (!drag) return;
+    reorderCategories(activeDog.id, drag.order);
+    setDrag(null);
+  };
 
   const addDog = (name) => {
     const newDog = { id: uid(), name, photo: null, birthday: null };
@@ -67,18 +147,10 @@ function App() {
     setShowAddCategory(false);
   };
 
-  const moveCategory = (catId, direction) => {
-    const cats = [...state.categories];
-    const dogId = cats.find((c) => c.id === catId)?.dogId;
-    const dogCats = cats.filter((c) => c.dogId === dogId);
-    const idx = dogCats.findIndex((c) => c.id === catId);
-    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= dogCats.length) return;
-    const a = dogCats[idx], b = dogCats[swapIdx];
-    const fullIdxA = cats.findIndex((c) => c.id === a.id);
-    const fullIdxB = cats.findIndex((c) => c.id === b.id);
-    [cats[fullIdxA], cats[fullIdxB]] = [cats[fullIdxB], cats[fullIdxA]];
-    persist({ ...state, categories: cats });
+  const reorderCategories = (dogId, orderedIds) => {
+    const reordered = orderedIds.map((id) => state.categories.find((c) => c.id === id));
+    const otherCats = state.categories.filter((c) => c.dogId !== dogId);
+    persist({ ...state, categories: [...otherCats, ...reordered] });
   };
 
   const deleteCategory = (catId) => {
@@ -249,28 +321,45 @@ function App() {
                   No trainings set up for {activeDog?.name} yet. Add one below to start logging sessions.
                 </p>
               )}
-              {dogCategories.map((cat, idx) => (
-                <CategoryCard
+              {displayCategories.map((cat) => (
+                <div
                   key={cat.id}
-                  category={cat}
-                  entries={state.entries.filter((e) => e.categoryId === cat.id)}
-                  accent={accent}
-                  accentLight={accentLight}
-                  onAddEntry={() => {
-                    setEntryModalCategory(cat);
-                    setEditingEntry(null);
-                  }}
-                  onEditEntry={(entry) => {
-                    setEntryModalCategory(cat);
-                    setEditingEntry(entry);
-                  }}
-                  onDeleteEntry={deleteEntry}
-                  onDeleteCategory={() => deleteCategory(cat.id)}
-                  onMoveUp={() => moveCategory(cat.id, "up")}
-                  onMoveDown={() => moveCategory(cat.id, "down")}
-                  isFirst={idx === 0}
-                  isLast={idx === dogCategories.length - 1}
-                />
+                  ref={(el) => (categoryRefs.current[cat.id] = el)}
+                  style={
+                    drag && drag.id === cat.id
+                      ? {
+                          position: "relative",
+                          zIndex: 10,
+                          transform: `translateY(${drag.deltaY}px)`,
+                          boxShadow: "0 8px 20px rgba(30,43,34,0.2)",
+                          borderRadius: 14,
+                        }
+                      : undefined
+                  }
+                >
+                  <CategoryCard
+                    category={cat}
+                    entries={state.entries.filter((e) => e.categoryId === cat.id)}
+                    accent={accent}
+                    accentLight={accentLight}
+                    onAddEntry={() => {
+                      setEntryModalCategory(cat);
+                      setEditingEntry(null);
+                    }}
+                    onEditEntry={(entry) => {
+                      setEntryModalCategory(cat);
+                      setEditingEntry(entry);
+                    }}
+                    onDeleteEntry={deleteEntry}
+                    onDeleteCategory={() => deleteCategory(cat.id)}
+                    dragHandleProps={{
+                      onPointerDown: (e) => onDragHandlePointerDown(cat.id, e),
+                      onPointerMove: onDragHandlePointerMove,
+                      onPointerUp: onDragHandlePointerUp,
+                      onPointerCancel: onDragHandlePointerUp,
+                    }}
+                  />
+                </div>
               ))}
               <button
                 onClick={() => setShowAddCategory(true)}
