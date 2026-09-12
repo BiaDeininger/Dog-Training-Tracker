@@ -38,8 +38,8 @@ Get a key at:
 
 Found a bug or have an improvement idea? Pull requests welcome.
 
-1. **Fork** this repository (top-right button on GitHub).
-2. Make your changes — the whole app lives in `index.html` (plain HTML + React, no build step). `manifest.json` and the icon files rarely need touching.
+1. **Branch or fork** this repository.
+2. Make your changes — see "Project structure" below for where things live. It's plain HTML + React (JSX), no build step: edit a file, open `index.html` in a browser, done.
 3. Commit your changes and **open a Pull Request** back to this repo, describing what you changed and why.
 4. The repo owner will review and merge if it looks good.
 
@@ -48,11 +48,25 @@ Once merged, the live app updates automatically — no need to reinstall or do a
 ### Project structure
 
 ```
-index.html      — the entire app (UI, logic, storage) in one file
-manifest.json   — home-screen app metadata (name, icons, colors)
-icon-192.png    — home screen icon (small)
-icon-512.png    — home screen icon (large)
+index.html                 — page shell: loads style.css and the src/ files in order
+style.css                  — all styling
+manifest.json              — home-screen app metadata (name, icons, colors)
+icon-192.png, icon-512.png — home screen icons
+
+src/storage.js             — localStorage read/write, seed data for new dogs
+src/ai.js                  — calls to the Claude/Gemini/ChatGPT APIs for notes analysis
+src/utils.js                — date/trend helpers, shared style constants
+src/ui.jsx                 — small reusable bits: ScalePicker, Modal, MiniChart, TrendArrow
+src/CategoryCard.jsx       — one training's card on the Log tab
+src/AddCategoryModal.jsx   — "new training" form
+src/AddEntryModal.jsx      — "log a session" form
+src/AISettingsModal.jsx    — AI provider key setup
+src/ManageDogsModal.jsx    — add/rename/delete dogs
+src/AnalysisView.jsx       — the Insights tab
+src/App.jsx                — top-level app state and layout; mounts the app
 ```
+
+Each `src/` file is loaded as its own `<script type="text/babel">` tag in `index.html`, in that order — no bundler, no `npm install`, just files a browser can run directly (a small library, Babel, turns the JSX into normal JavaScript at load time). Files later in the list can use anything defined in earlier ones.
 
 No build tools, no dependencies to install, no backend. Data lives entirely in each visitor's own browser (`localStorage`), which is why there's no login and no multi-device sync.
 
