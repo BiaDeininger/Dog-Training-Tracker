@@ -9,6 +9,10 @@ body {
   min-height: 100vh;
 }
 input:focus, select:focus, textarea:focus { outline: 2px solid #4C6B4F; outline-offset: 1px; }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.55; }
 .spin { animation: spin 1s linear infinite; display: inline-block; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 button { font-family: inherit; }

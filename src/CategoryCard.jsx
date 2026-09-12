@@ -16,6 +16,7 @@ function CategoryCard({
 }) {
   const [open, setOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingEntryId, setConfirmingEntryId] = useState(null);
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1));
   const numericFields = category.fields.filter((f) => f.type !== "text");
   const lastEntry = sorted[sorted.length - 1];
@@ -116,16 +117,36 @@ function CategoryCard({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDate(e.date)}</div>
-                    <button
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        onDeleteEntry(e.id);
-                      }}
-                      aria-label="Delete entry"
-                      style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", padding: 0, fontSize: 13 }}
-                    >
-                      🗑
-                    </button>
+                    {confirmingEntryId === e.id ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(ev) => ev.stopPropagation()}>
+                        <button
+                          onClick={() => {
+                            setConfirmingEntryId(null);
+                            onDeleteEntry(e.id);
+                          }}
+                          style={{ border: "none", background: "#B5432E", color: "#FFFFFF", fontSize: 11, fontWeight: 500, borderRadius: 6, padding: "4px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmingEntryId(null)}
+                          style={{ border: "none", background: "transparent", color: "#5B6459", fontSize: 11, cursor: "pointer", padding: "4px 2px" }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setConfirmingEntryId(e.id);
+                        }}
+                        aria-label="Delete entry"
+                        style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", padding: 0, fontSize: 13 }}
+                      >
+                        🗑
+                      </button>
+                    )}
                   </div>
                   <div style={{ color: "#5B6459", marginTop: 4, display: "flex", flexWrap: "wrap", gap: 10 }}>
                     {category.fields.map((f) => {

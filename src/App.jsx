@@ -23,6 +23,14 @@ function App() {
   const categoryRefs = useRef({});
   const pendingLongPress = useRef(null); // { catId, order, startX, startY, pointerId, el }
   const longPressTimer = useRef(null);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+
+  const showToast = (message) => {
+    clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(null), 1800);
+  };
 
   const persist = (next) => {
     setStateRaw(next);
@@ -172,6 +180,7 @@ function App() {
     const entry = { id: uid(), categoryId, date, values, notes };
     persist({ ...state, entries: [...state.entries, entry] });
     setEntryModalCategory(null);
+    showToast("Session logged");
   };
 
   const updateEntry = (entryId, { date, values, notes }) => {
@@ -180,6 +189,7 @@ function App() {
       entries: state.entries.map((e) => (e.id === entryId ? { ...e, date, values, notes } : e)),
     });
     setEntryModalCategory(null);
+    showToast("Changes saved");
   };
 
   const deleteEntry = (entryId) => {
@@ -201,7 +211,16 @@ function App() {
   };
 
   return (
-    <div style={{ background: "#EEF0E7", minHeight: "100vh", padding: "18px 16px 40px", boxSizing: "border-box" }}>
+    <div
+      style={{
+        background: "#EEF0E7",
+        minHeight: "100vh",
+        padding: "18px 16px 40px",
+        boxSizing: "border-box",
+        maxWidth: 480,
+        margin: "0 auto",
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 20 }}>🐾</span>
@@ -499,6 +518,28 @@ function App() {
             setShowAISettings(false);
           }}
         />
+      )}
+
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: 24,
+            transform: "translateX(-50%)",
+            background: "#1E2B22",
+            color: "#FFFFFF",
+            padding: "10px 18px",
+            borderRadius: 999,
+            fontSize: 13,
+            fontWeight: 500,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+            zIndex: 60,
+            pointerEvents: "none",
+          }}
+        >
+          {toast}
+        </div>
       )}
     </div>
   );
