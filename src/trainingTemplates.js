@@ -60,4 +60,19 @@ const TRAINING_TEMPLATES = [
       ]),
     ],
   },
+  {
+    id: "home-alone",
+    icon: "🏠",
+    name: "Home alone",
+    source: null,
+    description:
+      "Not a training protocol — just a log of real stretches of time your dog spends alone at home. Duration, who was alone, time of day, and what happened right before can add up over time into patterns, like a best time of day or how long they can comfortably manage.",
+    fields: () => [
+      templateField("Duration", "number", "min"),
+      templateField("Alone with", "text"),
+      templateField("Time of day", "text"),
+      templateField("Before this", "text"),
+      templateField("How it went", "scale"),
+    ],
+  },
 ];
