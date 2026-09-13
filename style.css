@@ -1,4 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Work+Sans:wght@400;500&display=swap');
+/*
+  Fraunces and Work Sans are vendored under vendor/fonts/ instead of loaded
+  from Google Fonts, for the same reason as vendor/react.production.min.js
+  etc. (see index.html): some sandboxes/CI environments block external CDN
+  domains at load time. Both are variable fonts, so one file per family
+  covers every weight used below (400/500/600 for Fraunces, 400/500 for
+  Work Sans) - the browser picks the right weight from the file's "wght"
+  axis. Latin-only subset (no Vietnamese/extended-Latin glyphs); fine for
+  this app's English UI text.
+*/
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('vendor/fonts/fraunces.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('vendor/fonts/work-sans.woff2') format('woff2');
+}
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; background: #EEF0E7; }
 body {
