@@ -8,8 +8,12 @@
 // collapsed as plain text; "Edit" reveals date/time inputs for backfilling.
 // Entries logged before this feature shipped have no stored time, so their
 // collapsed text just shows the date until someone edits in a time.
+//
+// Text fields (e.g. "Alone with") suggest previously typed values for that
+// field on this training, most-used first, via a native <datalist> — click
+// or start typing and the browser offers matches.
 
-function AddEntryModal({ category, entry, onClose, onSave }) {
+function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave }) {
   const hasSteps = category.steps && category.steps.length > 0;
   const [date, setDate] = useState(entry?.date || todayStr());
   const [time, setTime] = useState(entry ? entry.time || "" : nowTimeStr());
@@ -20,6 +24,14 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
   const [taskChecks, setTaskChecks] = useState(entry?.taskChecks || {});
 
   const setVal = (fieldId, v) => setValues((old) => ({ ...old, [fieldId]: v }));
+  const suggestionsFor = (fieldId) => {
+    const counts = new Map();
+    categoryEntries.forEach((e) => {
+      const v = e.values && e.values[fieldId];
+      if (typeof v === "string" && v.trim()) counts.set(v, (counts.get(v) || 0) + 1);
+    });
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([v]) => v);
+  };
   const toggleTask = (taskId) => setTaskChecks((tc) => ({ ...tc, [taskId]: !tc[taskId] }));
   const save = () => {
     const payload = { date, time: normalizeTimeInput(time, ""), values, notes: notes.trim() };
@@ -154,12 +166,20 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
             />
           )}
           {f.type === "text" && (
-            <input
-              type="text"
-              style={inputStyle}
-              value={values[f.id] ?? ""}
-              onChange={(e) => setVal(f.id, e.target.value)}
-            />
+            <React.Fragment>
+              <input
+                type="text"
+                style={inputStyle}
+                list={`suggestions-${f.id}`}
+                value={values[f.id] ?? ""}
+                onChange={(e) => setVal(f.id, e.target.value)}
+              />
+              <datalist id={`suggestions-${f.id}`}>
+                {suggestionsFor(f.id).map((v) => (
+                  <option key={v} value={v} />
+                ))}
+              </datalist>
+            </React.Fragment>
           )}
         </div>
       ))}

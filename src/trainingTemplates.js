@@ -73,7 +73,6 @@ const TRAINING_TEMPLATES = [
     fields: () => [
       templateField("Duration", "number", "min"),
       templateField("Alone with", "text"),
-      templateField("Time of day", "text"),
       templateField("Before this", "text"),
       templateField("How it went", "scale"),
     ],
