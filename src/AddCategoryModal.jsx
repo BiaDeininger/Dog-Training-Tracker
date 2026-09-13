@@ -11,6 +11,8 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("📋");
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [fields, setFields] = useState([{ id: uid(), label: "", type: "number", unit: "" }]);
   const [error, setError] = useState("");
 
@@ -45,7 +47,7 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
       setError("Add at least one thing you want to track.");
       return;
     }
-    onSave({ name: name.trim(), fields: cleanFields, ...(description.trim() ? { description: description.trim() } : {}) });
+    onSave({ name: name.trim(), icon, fields: cleanFields, ...(description.trim() ? { description: description.trim() } : {}) });
   };
 
   const backButton = (
@@ -119,6 +121,27 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
     return (
       <Modal title={`New training for ${dogName}`} onClose={onClose}>
         {backButton}
+
+        <label style={labelStyle}>Icon</label>
+        <button
+          onClick={() => setShowIconPicker(true)}
+          type="button"
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 10,
+            border: "1px solid #D7DACB",
+            background: "#FBFAF6",
+            fontSize: 20,
+            cursor: "pointer",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {icon}
+        </button>
 
         <label style={labelStyle}>Training name</label>
         <input
@@ -222,6 +245,17 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
         >
           Create training
         </button>
+
+        {showIconPicker && (
+          <IconPickerModal
+            current={icon}
+            onClose={() => setShowIconPicker(false)}
+            onSelect={(picked) => {
+              setIcon(picked);
+              setShowIconPicker(false);
+            }}
+          />
+        )}
       </Modal>
     );
   }

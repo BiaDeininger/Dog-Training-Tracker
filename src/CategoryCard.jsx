@@ -12,11 +12,13 @@ function CategoryCard({
   onEditEntry,
   onDeleteEntry,
   onDeleteCategory,
+  onUpdateIcon,
   dragHandleProps,
 }) {
   const [open, setOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingEntryId, setConfirmingEntryId] = useState(null);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1));
   const numericFields = category.fields.filter((f) => f.type !== "text");
   const lastEntry = sorted[sorted.length - 1];
@@ -35,30 +37,35 @@ function CategoryCard({
   return (
     <div style={{ background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 14, marginBottom: 14, overflow: "hidden" }}>
       <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 10px 10px 12px" }}>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", padding: "4px 0" }}
-        >
-          <span
+        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <button
+            onClick={() => setShowIconPicker(true)}
+            aria-label="Change training icon"
             style={{
               flexShrink: 0,
               width: 36,
               height: 36,
               borderRadius: 10,
               background: accentLight,
+              border: "none",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: 17,
+              cursor: "pointer",
+              padding: 0,
             }}
           >
             {category.icon || "📋"}
-          </span>
-          <div>
+          </button>
+          <button
+            onClick={() => setOpen((o) => !o)}
+            style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", padding: "4px 0" }}
+          >
             <div style={{ fontWeight: 500, fontSize: 16, color: "#1E2B22" }}>{category.name}</div>
             <div style={{ fontSize: 13, color: "#5B6459", marginTop: 2 }}>{subtitle}</div>
-          </div>
-        </button>
+          </button>
+        </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 0, marginLeft: 6 }}>
           <button
@@ -233,6 +240,18 @@ function CategoryCard({
             </button>
           )}
         </div>
+      )}
+
+      {showIconPicker && (
+        <IconPickerModal
+          title="Change icon"
+          current={category.icon}
+          onClose={() => setShowIconPicker(false)}
+          onSelect={(icon) => {
+            onUpdateIcon(icon);
+            setShowIconPicker(false);
+          }}
+        />
       )}
     </div>
   );

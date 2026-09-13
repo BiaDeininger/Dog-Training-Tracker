@@ -82,6 +82,43 @@ function inDateRange(dateStr, range, customStart, customEnd) {
   return true;
 }
 
+// Streaks are calendar-day based: any entry (across all trainings) logged for
+// a dog on a given day counts toward that day. "current" doesn't break just
+// because nothing's been logged yet today — it only breaks once a full day
+// is skipped.
+function computeStreak(entries) {
+  const dates = new Set(entries.map((e) => e.date));
+  if (dates.size === 0) return { current: 0, longest: 0, loggedToday: false };
+
+  const addDays = (dateStr, delta) => {
+    const d = new Date(dateStr + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() + delta);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const today = todayStr();
+  const loggedToday = dates.has(today);
+  let cursor = loggedToday ? today : addDays(today, -1);
+
+  let current = 0;
+  while (dates.has(cursor)) {
+    current++;
+    cursor = addDays(cursor, -1);
+  }
+
+  const sortedDates = [...dates].sort();
+  let longest = 0;
+  let run = 0;
+  let prev = null;
+  for (const d of sortedDates) {
+    run = prev && addDays(prev, 1) === d ? run + 1 : 1;
+    longest = Math.max(longest, run);
+    prev = d;
+  }
+
+  return { current, longest, loggedToday };
+}
+
 const scaleColors = ["#C9CFC0", "#A9BB9C", "#87A874", "#639922", "#3B6D11"];
 
 const inputStyle = {

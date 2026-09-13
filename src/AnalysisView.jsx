@@ -12,6 +12,8 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
   const [aiResult, setAiResult] = useState(null);
   const [aiError, setAiError] = useState("");
 
+  const streak = computeStreak(entries);
+
   const scopedCategories = scope === "all" ? categories : categories.filter((c) => c.id === scope);
   const scopedCategoryIds = new Set(scopedCategories.map((c) => c.id));
   const scopedEntries = entries.filter((e) => scopedCategoryIds.has(e.categoryId));
@@ -97,8 +99,36 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
     { key: "custom", label: "Custom" },
   ];
 
+  const streakTitle = streak.current > 0 ? `${streak.current}-day streak` : "No streak yet";
+  const streakSubtitle =
+    streak.current > 0
+      ? (streak.loggedToday ? "Logged today — keep it going tomorrow" : "Log today to keep it going") +
+        (streak.longest > streak.current ? ` · best ${streak.longest}` : "")
+      : streak.longest > 0
+      ? `Log today to start a new one — best was ${streak.longest} days`
+      : "Log a session today to start one";
+
   return (
     <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          background: streak.current > 0 ? accentLight : "#FFFFFF",
+          border: streak.current > 0 ? "none" : "1px solid #E4E6DA",
+          borderRadius: 14,
+          padding: "14px 16px",
+          marginBottom: 18,
+        }}
+      >
+        <span style={{ fontSize: 26, lineHeight: 1 }}>🔥</span>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 600, color: streak.current > 0 ? accent : "#1E2B22" }}>{streakTitle}</div>
+          <div style={{ fontSize: 12.5, color: "#5B6459", marginTop: 2 }}>{streakSubtitle}</div>
+        </div>
+      </div>
+
       <label style={{ ...labelStyle, marginBottom: 8 }}>Scope</label>
       <select
         style={{ ...inputStyle, marginBottom: 14 }}
