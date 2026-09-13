@@ -30,11 +30,16 @@ button { font-family: inherit; }
 }
 .unicorn-flyby {
   position: absolute;
-  font-size: 56px;
-  animation: unicorn-fly 2.6s ease-in-out forwards;
+  width: 130px;
+  animation: unicorn-fly 2.8s ease-in-out forwards;
 }
 @keyframes unicorn-fly {
-  0% { left: -15vw; top: 20%; transform: scaleX(-1); }
-  50% { top: 12%; }
-  100% { left: 105vw; top: 24%; transform: scaleX(-1); }
+  0% { left: -22vw; top: 20%; }
+  50% { top: 11%; }
+  100% { left: 110vw; top: 24%; }
+}
+.unicorn-svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
