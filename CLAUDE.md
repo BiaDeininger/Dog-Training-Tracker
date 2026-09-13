@@ -7,14 +7,18 @@ no bundler. Data lives in the browser's `localStorage`; there is no backend.
 ## Before opening a pull request
 
 Every PR must be manually verified working in a browser before it's opened,
-not just written and assumed correct — this app has no automated test
-suite, so this is the only check that happens before a human reviews it.
+not just written and assumed correct.
 
-1. Serve the app locally (e.g. `python3 -m http.server` in the repo root)
-   and open it in a real or headless browser (the `run` skill can drive
-   this). A syntax check or a read-through of the diff is not sufficient.
-2. Actually exercise the specific feature or fix the PR changes — click
-   through the golden path, not just load the page.
+1. Run `npm test` (Playwright; `npm ci` once beforehand). It's a smoke test
+   — add a dog, add a training, log a session, reload and check it
+   persisted, no console errors. It also runs automatically on every PR via
+   `.github/workflows/test.yml`, but run it locally first: it only covers
+   that one core path, not the feature you're changing.
+2. Serve the app locally (`node scripts/serve.js`, or the `run` skill) and
+   open it in a real or headless browser. Actually exercise the specific
+   feature or fix the PR changes — click through the golden path, not just
+   load the page. A syntax check or a read-through of the diff is not
+   sufficient, and neither is the smoke test passing on its own.
 3. Check at least one adjacent flow that touches the same file(s), since a
    change to a shared component (`App.jsx`, `storage.js`, `ui.jsx`, etc.)
    can silently break something the PR wasn't about.
@@ -22,6 +26,9 @@ suite, so this is the only check that happens before a human reviews it.
 5. If something can't be tested this way (e.g. it needs a real iOS PWA
    install), say so explicitly in the PR description instead of claiming
    it was tested.
+
+If a change adds a real new flow, extend `tests/smoke.spec.js` to cover it
+rather than leaving all future coverage to manual testing.
 
 ## Working alongside other sessions
 

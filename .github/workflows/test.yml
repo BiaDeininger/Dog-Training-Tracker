@@ -1,0 +1,24 @@
+name: Smoke Test
+
+# Runs the Playwright smoke test on every pull request. Free — no API
+# keys, just GitHub's own Actions runner and browser download.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm test
