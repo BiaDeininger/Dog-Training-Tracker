@@ -10,6 +10,7 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
   const [templateName, setTemplateName] = useState("");
 
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [fields, setFields] = useState([{ id: uid(), label: "", type: "number", unit: "" }]);
   const [error, setError] = useState("");
 
@@ -43,7 +44,7 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
       setError("Add at least one thing you want to track.");
       return;
     }
-    onSave({ name: name.trim(), fields: cleanFields });
+    onSave({ name: name.trim(), fields: cleanFields, ...(description.trim() ? { description: description.trim() } : {}) });
   };
 
   const backButton = (
@@ -127,6 +128,14 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
             setName(e.target.value);
             setError("");
           }}
+        />
+
+        <label style={labelStyle}>Description (optional)</label>
+        <input
+          style={{ ...inputStyle, marginBottom: 16 }}
+          placeholder="A short note about what this training is for"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
 
         <label style={labelStyle}>What do you want to track?</label>
