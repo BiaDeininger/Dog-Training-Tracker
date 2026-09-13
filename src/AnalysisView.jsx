@@ -212,7 +212,31 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
         )}
       </div>
 
-      <div style={{ fontSize: 15, fontWeight: 500, color: "#1E2B22", marginBottom: 10 }}>Notes insights</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: "#1E2B22" }}>Notes insights</div>
+        {aiConfig?.apiKey && (
+          <button
+            onClick={onOpenAISettings}
+            title="Manage Gemini key"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              border: "none",
+              background: "#EAF3EC",
+              color: "#22643B",
+              fontSize: 12,
+              fontWeight: 500,
+              borderRadius: 20,
+              padding: "4px 10px",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3F8F5F", display: "inline-block" }} />
+            Gemini connected
+          </button>
+        )}
+      </div>
 
       {aiConfig?.apiKey ? (
         <React.Fragment>
@@ -259,19 +283,15 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
               {aiResult}
             </div>
           )}
-
-          <button
-            onClick={onOpenAISettings}
-            style={{ border: "none", background: "transparent", color: "#8B8F7F", fontSize: 12, textDecoration: "underline", cursor: "pointer", padding: 0, marginBottom: 14 }}
-          >
-            AI settings ({PROVIDER_LABELS[aiConfig.provider]})
-          </button>
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <p style={{ fontSize: 13, color: "#5B6459", marginBottom: 10 }}>
-            Connect your own Claude, Gemini, or ChatGPT key to get patterns, triggers, and progress signals pulled
-            from your notes automatically.
+          <p style={{ fontSize: 13, color: "#5B6459", marginBottom: 6 }}>
+            Connect a Google Gemini key to get patterns, triggers, and progress signals pulled from your notes
+            automatically.
+          </p>
+          <p style={{ fontSize: 12, color: "#8B8F7F", marginBottom: 10 }}>
+            Free — no credit card needed. Takes about a minute to set up.
           </p>
           <button
             onClick={onOpenAISettings}
@@ -292,7 +312,7 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
               marginBottom: 14,
             }}
           >
-            ✨ Set up AI analysis
+            ✨ Set up free AI analysis
           </button>
         </React.Fragment>
       )}

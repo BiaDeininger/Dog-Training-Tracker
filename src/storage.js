@@ -14,7 +14,13 @@ const BACKUP_REPROMPT_HOURS = 20;
 function loadAIConfig() {
   try {
     const raw = localStorage.getItem(AI_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const cfg = JSON.parse(raw);
+    // Older versions of this app also supported Claude/ChatGPT keys (tagged with a
+    // "provider" field). Those are gone now, so a saved key from either would just
+    // fail against the Gemini endpoint below — drop it and let the user reconnect.
+    if (cfg?.provider && cfg.provider !== "gemini") return null;
+    return cfg;
   } catch (e) {
     return null;
   }

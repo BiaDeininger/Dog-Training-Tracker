@@ -1,83 +1,32 @@
-// Talking to whichever AI provider the user connected their own key for.
-// See AISettingsModal (src/modals.jsx) for how the key is collected and stored.
+// Talking to Google's Gemini API for the optional "AI notes analysis" feature.
+// See AISettingsModal (src/AISettingsModal.jsx) for how the key is collected and stored.
+// Gemini is the only provider offered here: it's the only major model API with a
+// genuinely free tier (no credit card, no trial period that expires) — see
+// aistudio.google.com/apikey. Claude and ChatGPT keys are paid from the first call,
+// so they're not worth the setup for this app.
 
-const DEFAULT_MODELS = {
-  anthropic: "claude-haiku-4-5-20251001",
-  gemini: "gemini-flash-latest",
-  openai: "gpt-4o-mini",
-};
-
-const PROVIDER_LABELS = {
-  anthropic: "Claude (Anthropic)",
-  gemini: "Gemini (Google)",
-  openai: "ChatGPT (OpenAI)",
-};
-
-const PROVIDER_KEY_URLS = {
-  anthropic: "console.anthropic.com/settings/keys",
-  gemini: "aistudio.google.com/apikey",
-  openai: "platform.openai.com/api-keys",
-};
+const DEFAULT_MODEL = "gemini-flash-latest";
+const GEMINI_KEY_URL = "aistudio.google.com/apikey";
 
 // This app has no server, so there's nowhere else to keep the key: it lives in this
-// browser's storage and every request goes straight from here to the provider.
-// Anthropic blocks browser calls unless a request opts in with this header, which
-// exists specifically for BYOK apps like this one — it's not a workaround.
-async function callAIProvider({ provider, apiKey, model }, prompt) {
-  if (provider === "anthropic") {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+// browser's storage and every request goes straight from here to Google.
+// Key goes in a header, not the query string: URLs get written to browser history
+// and server logs in a way that request headers don't. The model name is encoded
+// because it comes from a free-text field, and a stray "?" or "#" in it would
+// otherwise change what URL we actually request.
+async function callAIProvider({ apiKey, model }, prompt) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model || DEFAULT_MODEL)}:generateContent`,
+    {
       method: "POST",
       headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 700,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || `Claude API error (${res.status})`);
-    return (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n\n");
-  }
-
-  if (provider === "gemini") {
-    // Key goes in a header, not the query string: URLs get written to browser
-    // history and server logs in a way that request headers don't. The model
-    // name is encoded because it comes from a free-text field, and a stray
-    // "?" or "#" in it would otherwise change what URL we actually request.
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || `Gemini API error (${res.status})`);
-    return (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text).join("") || "";
-  }
-
-  if (provider === "openai") {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
       },
-      body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }] }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || `OpenAI API error (${res.status})`);
-    return data?.choices?.[0]?.message?.content || "";
-  }
-
-  throw new Error("Unknown provider");
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || `Gemini API error (${res.status})`);
+  return (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text).join("") || "";
 }

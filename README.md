@@ -34,12 +34,9 @@ The app will also pop up a reminder to back up every couple of weeks, or after e
 
 ### Optional: AI notes analysis
 
-In the **Insights** tab, under "Notes insights," you can connect your *own* API key from Claude, Gemini, or ChatGPT to get automatic pattern-spotting from your free-text notes. This is entirely optional — everything else works without it. Your key is stored only on your device and sent directly to that provider, never through this app's code or repo.
+In the **Insights** tab, under "Notes insights," you can connect your *own* free Google Gemini API key to get automatic pattern-spotting from your free-text notes. This is entirely optional — everything else works without it. Your key is stored only on your device and sent directly to Google, never through this app's code or repo.
 
-Get a key at:
-- Claude: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
-- Gemini (has a free tier): [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-- ChatGPT: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+Get a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) — sign in with any Google account, click "Create API key," no credit card required. Each person using this app (e.g. you and a training partner) gets their own free key on their own device.
 
 ---
 
@@ -65,13 +62,13 @@ manifest.json              — home-screen app metadata (name, icons, colors)
 icon-192.png, icon-512.png — home screen icons
 
 src/storage.js             — localStorage read/write, seed data for new dogs
-src/ai.js                  — calls to the Claude/Gemini/ChatGPT APIs for notes analysis
+src/ai.js                  — calls to the Gemini API for notes analysis
 src/utils.js               — date/trend helpers, shared style constants
 src/ui.jsx                 — small reusable bits: ScalePicker, Modal, MiniChart, TrendArrow
 src/CategoryCard.jsx       — one training's card on the Log tab
 src/AddCategoryModal.jsx   — "new training" form
 src/AddEntryModal.jsx      — "log a session" form
-src/AISettingsModal.jsx    — AI provider key setup
+src/AISettingsModal.jsx    — Gemini API key setup
 src/ManageDogsModal.jsx    — add/rename/delete dogs, backup export/import
 src/BackupReminderModal.jsx — periodic "back up your data" reminder popup
 src/AboutModal.jsx         — "About this app" info panel (data storage, backup, repo link)
@@ -89,4 +86,4 @@ No build tools, no dependencies to install, no backend. Data lives entirely in e
 
 - **No cross-device sync** — data is tied to one browser on one device.
 - **No automatic cloud backup** — clearing browser data or site storage loses your entries unless you've exported a backup file (see "Backing up and restoring your data" above) and re-import it.
-- **AI notes analysis requires your own API key** — this app doesn't provide one.
+- **AI notes analysis requires your own free Gemini API key** — this app doesn't provide one.
