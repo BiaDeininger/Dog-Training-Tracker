@@ -1,13 +1,30 @@
 // Form for logging one training session against a category's fields, or
-// editing one that was already logged (pass its entry in via `entry`).
+// editing one that was already logged (pass its entry in via `entry`). If
+// the category has a step/task checklist (from a template — see
+// src/trainingTemplates.js), also lets you pick which step you're on and
+// check off its tasks.
 
 function AddEntryModal({ category, entry, onClose, onSave }) {
+  const hasSteps = category.steps && category.steps.length > 0;
   const [date, setDate] = useState(entry?.date || todayStr());
   const [values, setValues] = useState(entry?.values || {});
   const [notes, setNotes] = useState(entry?.notes || "");
+  const [stepId, setStepId] = useState(entry?.stepId || (hasSteps ? category.steps[0].id : null));
+  const [taskChecks, setTaskChecks] = useState(entry?.taskChecks || {});
 
   const setVal = (fieldId, v) => setValues((old) => ({ ...old, [fieldId]: v }));
-  const save = () => onSave({ date, values, notes: notes.trim() });
+  const toggleTask = (taskId) => setTaskChecks((tc) => ({ ...tc, [taskId]: !tc[taskId] }));
+  const save = () => {
+    const payload = { date, values, notes: notes.trim() };
+    if (hasSteps) {
+      payload.stepId = stepId;
+      payload.taskChecks = taskChecks;
+    }
+    onSave(payload);
+  };
+
+  const currentStep = hasSteps ? category.steps.find((s) => s.id === stepId) : null;
+  const doneCount = currentStep ? currentStep.tasks.filter((t) => taskChecks[t.id]).length : 0;
 
   return (
     <Modal title={`${entry ? "Edit" : "Log"}: ${category.name}`} onClose={onClose}>
@@ -19,6 +36,59 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
         max={todayStr()}
         onChange={(e) => setDate(e.target.value)}
       />
+
+      {hasSteps && (
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Which step are you training?</label>
+          <select
+            style={{ ...inputStyle, marginBottom: 10 }}
+            value={stepId}
+            onChange={(e) => {
+              setStepId(e.target.value);
+              setTaskChecks({});
+            }}
+          >
+            {category.steps.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+
+          {currentStep && (
+            <React.Fragment>
+              <div style={{ fontSize: 12, color: "#5B6459", marginBottom: 8 }}>
+                {doneCount}/{currentStep.tasks.length} tasks checked
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {currentStep.tasks.map((t) => (
+                  <label
+                    key={t.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 8,
+                      fontSize: 13.5,
+                      color: "#1E2B22",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!taskChecks[t.id]}
+                      onChange={() => toggleTask(t.id)}
+                      style={{ marginTop: 2, width: 16, height: 16, flexShrink: 0, cursor: "pointer" }}
+                    />
+                    <span style={taskChecks[t.id] ? { color: "#8B8F7F", textDecoration: "line-through" } : undefined}>
+                      {t.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      )}
 
       {category.fields.map((f) => (
         <div key={f.id} style={{ marginBottom: 16 }}>
