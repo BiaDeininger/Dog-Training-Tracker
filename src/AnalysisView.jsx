@@ -278,7 +278,7 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
             }}
           >
             {aiLoading && <span className="spin">⟳</span>}
-            {aiLoading ? "Reading your training log…" : loggedEntries.length === 0 ? "No sessions in this range" : "✨ Analyze with AI"}
+            {aiLoading ? "Reading your training log…" : loggedEntries.length === 0 ? "No sessions in this range" : "Analyze with AI"}
           </button>
 
           {aiError && <p style={{ fontSize: 13, color: "#B5432E", marginBottom: 8 }}>{aiError}</p>}
@@ -304,11 +304,11 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
       ) : (
         <React.Fragment>
           <p style={{ fontSize: 13, color: "#5B6459", marginBottom: 6 }}>
-            Connect a Google Gemini key to get patterns, triggers, and progress signals pulled from your logged
-            sessions automatically — durations, places, ratings, and notes together.
+            Connect a free Google Gemini key and it'll read your logged sessions — durations, places, ratings, and
+            notes — and pull out patterns, triggers, and signs of progress on its own.
           </p>
           <p style={{ fontSize: 12, color: "#8B8F7F", marginBottom: 10 }}>
-            Free — no credit card needed. Takes about a minute to set up.
+            No credit card needed, about a minute to set up.
           </p>
           <button
             onClick={onOpenAISettings}
@@ -329,7 +329,7 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
               marginBottom: 14,
             }}
           >
-            ✨ Set up free AI analysis
+            Set up free AI analysis
           </button>
         </React.Fragment>
       )}
