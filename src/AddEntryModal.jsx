@@ -3,10 +3,17 @@
 // the category has a step/task checklist (from a template — see
 // src/trainingTemplates.js), also lets you pick which step you're on and
 // check off its tasks.
+//
+// The "When" timestamp auto-fills to right now for a new entry and is shown
+// collapsed as plain text; "Edit" reveals date/time inputs for backfilling.
+// Entries logged before this feature shipped have no stored time, so their
+// collapsed text just shows the date until someone edits in a time.
 
 function AddEntryModal({ category, entry, onClose, onSave }) {
   const hasSteps = category.steps && category.steps.length > 0;
   const [date, setDate] = useState(entry?.date || todayStr());
+  const [time, setTime] = useState(entry ? entry.time || "" : nowTimeStr());
+  const [editingWhen, setEditingWhen] = useState(false);
   const [values, setValues] = useState(entry?.values || {});
   const [notes, setNotes] = useState(entry?.notes || "");
   const [stepId, setStepId] = useState(entry?.stepId || (hasSteps ? category.steps[0].id : null));
@@ -15,7 +22,7 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
   const setVal = (fieldId, v) => setValues((old) => ({ ...old, [fieldId]: v }));
   const toggleTask = (taskId) => setTaskChecks((tc) => ({ ...tc, [taskId]: !tc[taskId] }));
   const save = () => {
-    const payload = { date, values, notes: notes.trim() };
+    const payload = { date, time: normalizeTimeInput(time, ""), values, notes: notes.trim() };
     if (hasSteps) {
       payload.stepId = stepId;
       payload.taskChecks = taskChecks;
@@ -28,14 +35,38 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
 
   return (
     <Modal title={`${entry ? "Edit" : "Log"}: ${category.name}`} onClose={onClose}>
-      <label style={labelStyle}>Date</label>
-      <input
-        type="date"
-        style={{ ...inputStyle, marginBottom: 16 }}
-        value={date}
-        max={todayStr()}
-        onChange={(e) => setDate(e.target.value)}
-      />
+      <label style={labelStyle}>When</label>
+      {editingWhen ? (
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <input
+            type="date"
+            style={{ ...inputStyle, flex: 1 }}
+            value={date}
+            max={todayStr()}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="HH:MM"
+            style={{ ...inputStyle, flex: 1 }}
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            onBlur={() => setTime((t) => normalizeTimeInput(t, ""))}
+          />
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <span style={{ fontSize: 15, color: "#1E2B22" }}>{fmtDateTime(date, time)}</span>
+          <button
+            type="button"
+            onClick={() => setEditingWhen(true)}
+            style={{ border: "none", background: "transparent", color: "#4C6B4F", fontSize: 13, fontWeight: 500, cursor: "pointer", padding: 0 }}
+          >
+            Edit
+          </button>
+        </div>
+      )}
 
       {hasSteps && (
         <div style={{ marginBottom: 16 }}>

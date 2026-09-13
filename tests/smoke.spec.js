@@ -37,18 +37,25 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
   await expect(card).toBeVisible();
   await card.click();
 
-  // Log a session against it.
+  // Log a session against it. The "When" timestamp should auto-populate to
+  // right now (no interaction needed), collapsed as plain text, with an
+  // "Edit" link to expand it for backfilling an older date/time.
   await page.getByRole("button", { name: "+ Log a session" }).click();
+  await expect(page.getByText(/^Today at \d{2}:\d{2}$/)).toBeVisible();
+  await page.getByRole("button", { name: "Edit" }).click();
+  await page.locator('input[placeholder="HH:MM"]').fill("09:15");
   await page.locator('input[type="number"]').fill("12"); // the "Speed" field
   await page.getByRole("button", { name: "Save entry" }).click();
 
   await expect(page.getByText("Session logged")).toBeVisible();
+  await expect(page.getByText("09:15")).toBeVisible();
 
   // Data must survive a reload — it's the only persistence this app has.
   await page.reload();
   await expect(page.getByRole("button", { name: "Rex", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Recall", exact: false }).click();
   await expect(page.getByText("1 entry")).toBeVisible();
+  await expect(page.getByText("09:15")).toBeVisible();
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });

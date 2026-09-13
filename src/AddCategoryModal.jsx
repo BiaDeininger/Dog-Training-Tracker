@@ -270,27 +270,39 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
             onClick={() => openPreview(t)}
             style={{
               display: "flex",
-              alignItems: "flex-start",
+              alignItems: "center",
               gap: 10,
               textAlign: "left",
               border: "1px solid #EAEAE0",
               borderRadius: 12,
-              padding: "12px 14px",
+              padding: "10px 14px",
               background: "#FBFAF6",
               cursor: "pointer",
             }}
           >
-            <span style={{ fontSize: 20, lineHeight: 1 }}>{t.icon}</span>
-            <span style={{ flex: 1 }}>
-              <span style={{ display: "block", fontWeight: 500, fontSize: 15, color: "#1E2B22" }}>{t.name}</span>
-              <span style={{ display: "block", fontSize: 12.5, color: "#5B6459", marginTop: 2, lineHeight: 1.4 }}>
-                {t.description}
+            <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{t.icon}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontWeight: 500, fontSize: 15, color: "#1E2B22" }}>{t.name}</span>
+                {t.steps && (
+                  <span style={{ fontSize: 11, color: "#4C6B4F", fontWeight: 500, whiteSpace: "nowrap" }}>
+                    {t.steps().length} steps
+                  </span>
+                )}
               </span>
-              {t.steps && (
-                <span style={{ display: "inline-block", fontSize: 11, color: "#4C6B4F", marginTop: 6, fontWeight: 500 }}>
-                  {t.steps().length}-step checklist included
-                </span>
-              )}
+              <span
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  fontSize: 12.5,
+                  color: "#5B6459",
+                  marginTop: 2,
+                }}
+              >
+                {t.tagline}
+              </span>
             </span>
           </button>
         ))}
