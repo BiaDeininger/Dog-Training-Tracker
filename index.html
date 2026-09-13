@@ -16,25 +16,21 @@
 <link rel="stylesheet" href="style.css?v=15" />
 
 <!--
-  The `integrity` fingerprints below are what make loading these from a CDN safe:
-  the browser refuses to run a file whose contents don't hash to exactly this
-  value, so a tampered or swapped-out CDN file can't execute here. If you ever
-  bump a version, the fingerprint must be regenerated to match it.
+  React, ReactDOM and Babel Standalone are vendored under vendor/ instead of
+  loaded from a CDN, so the app has no runtime dependency on any external
+  host reachable at load time (some sandboxes/CI environments block CDN
+  domains outright). These are the unmodified react@18.3.1,
+  react-dom@18.3.1 and @babel/standalone@7.24.7 UMD builds, byte-for-byte
+  identical to what jsdelivr serves (verified against the previous
+  `integrity` hashes before switching). To upgrade, pull the new version's
+  UMD build via `npm pack <pkg>@<version>` (npm's registry is allowlisted
+  even where CDNs aren't) and replace the file here.
 -->
-<script
-  src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"
-  integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"
-  crossorigin="anonymous"></script>
-<script
-  src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"
-  integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"
-  crossorigin="anonymous"></script>
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
 <!-- Lets us write the app below as plain JSX with no install/build step: -->
 <!-- this transforms it to JS in the browser right before it runs. -->
-<script
-  src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"
-  integrity="sha384-AISI5AuDG6E8DeEiFMVB3rGQxhZt24OU0avMp+GMV64+tpnA3+Z6F5MT0f96iPva"
-  crossorigin="anonymous"></script>
+<script src="vendor/babel.min.js"></script>
 <script>
   // Built with textContent rather than innerHTML so an error message can never
   // be treated as markup.
