@@ -72,6 +72,68 @@ function Modal({ title, onClose, children }) {
   );
 }
 
+const TRAINING_ICON_CHOICES = [
+  "📋", "🐾", "🦮", "🐕", "🐩", "🗺️", "🧘", "🏠",
+  "🚪", "🔔", "🛑", "🎯", "🍖", "🧠", "⏱️", "🎾",
+  "🧸", "🚗", "👥", "🌳",
+];
+
+function IconPickerModal({ title, current, onClose, onSelect }) {
+  const [custom, setCustom] = useState("");
+  return (
+    <Modal title={title || "Choose an icon"} onClose={onClose}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 18 }}>
+        {TRAINING_ICON_CHOICES.map((icon) => (
+          <button
+            key={icon}
+            onClick={() => onSelect(icon)}
+            aria-label={`Use ${icon} icon`}
+            style={{
+              aspectRatio: "1",
+              fontSize: 22,
+              borderRadius: 12,
+              border: current === icon ? "2px solid #1E2B22" : "1px solid #E4E6DA",
+              background: "#FBFAF6",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+            }}
+          >
+            {icon}
+          </button>
+        ))}
+      </div>
+
+      <label style={labelStyle}>Or use your own emoji</label>
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          style={{ ...inputStyle, flex: 1 }}
+          placeholder="🐩"
+          value={custom}
+          onChange={(e) => setCustom(e.target.value)}
+        />
+        <button
+          onClick={() => custom.trim() && onSelect(custom.trim())}
+          disabled={!custom.trim()}
+          style={{
+            border: "none",
+            borderRadius: 8,
+            padding: "0 16px",
+            background: custom.trim() ? "#1E2B22" : "#EAEAE0",
+            color: custom.trim() ? "#FFFFFF" : "#A9AA9C",
+            fontWeight: 500,
+            cursor: custom.trim() ? "pointer" : "default",
+          }}
+        >
+          Use
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 function MiniChart({ data, color }) {
   if (data.length < 2) return null;
   const width = 320, height = 110, padX = 6, padY = 14;

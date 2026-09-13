@@ -168,6 +168,10 @@ function App() {
     persist({ ...state, categories: [...otherCats, ...reordered] });
   };
 
+  const updateCategory = (catId, patch) => {
+    persist({ ...state, categories: state.categories.map((c) => (c.id === catId ? { ...c, ...patch } : c)) });
+  };
+
   const deleteCategory = (catId) => {
     persist({
       ...state,
@@ -412,6 +416,7 @@ function App() {
                     }}
                     onDeleteEntry={deleteEntry}
                     onDeleteCategory={() => deleteCategory(cat.id)}
+                    onUpdateIcon={(icon) => updateCategory(cat.id, { icon })}
                     dragHandleProps={{
                       onPointerDown: (e) => onDragHandlePointerDown(cat.id, e),
                       onPointerMove: onDragHandlePointerMove,
