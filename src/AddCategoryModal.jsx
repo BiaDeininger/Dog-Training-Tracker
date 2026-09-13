@@ -28,6 +28,7 @@ function AddCategoryModal({ dogName, onClose, onSave }) {
     if (!selectedTemplate) return;
     onSave({
       name: (templateName || selectedTemplate.name).trim() || selectedTemplate.name,
+      icon: selectedTemplate.icon,
       fields: selectedTemplate.fields(),
       ...(selectedTemplate.steps ? { steps: selectedTemplate.steps() } : {}),
       description: selectedTemplate.description,

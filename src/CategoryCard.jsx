@@ -21,23 +21,42 @@ function CategoryCard({
   const numericFields = category.fields.filter((f) => f.type !== "text");
   const lastEntry = sorted[sorted.length - 1];
 
+  const stepIndex = lastEntry?.stepId && category.steps ? category.steps.findIndex((s) => s.id === lastEntry.stepId) : -1;
+  const stepProgress = category.steps && stepIndex >= 0 ? `Day ${stepIndex + 1} of ${category.steps.length}` : null;
+
+  let subtitle;
+  if (sorted.length === 0) {
+    subtitle = category.steps ? `${category.steps.length}-day plan · not started` : "No entries yet";
+  } else {
+    subtitle = `${sorted.length} entr${sorted.length === 1 ? "y" : "ies"} · last ${fmtDate(lastEntry.date)}`;
+    if (stepProgress) subtitle += ` · ${stepProgress}`;
+  }
+
   return (
     <div style={{ background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 14, marginBottom: 14, overflow: "hidden" }}>
-      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 10px 10px 16px" }}>
+      <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 10px 10px 12px" }}>
         <button
           onClick={() => setOpen((o) => !o)}
-          style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", padding: "4px 0" }}
+          style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, background: "transparent", border: "none", cursor: "pointer", textAlign: "left", padding: "4px 0" }}
         >
+          <span
+            style={{
+              flexShrink: 0,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: accentLight,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 17,
+            }}
+          >
+            {category.icon || "📋"}
+          </span>
           <div>
             <div style={{ fontWeight: 500, fontSize: 16, color: "#1E2B22" }}>{category.name}</div>
-            <div style={{ fontSize: 13, color: "#5B6459", marginTop: 2 }}>
-              {sorted.length === 0
-                ? "No entries yet"
-                : `${sorted.length} entr${sorted.length === 1 ? "y" : "ies"} · last ${fmtDate(lastEntry.date)}`}
-            </div>
-            {category.description && (
-              <div style={{ fontSize: 12, color: "#8B8F7F", marginTop: 3, lineHeight: 1.4 }}>{category.description}</div>
-            )}
+            <div style={{ fontSize: 13, color: "#5B6459", marginTop: 2 }}>{subtitle}</div>
           </div>
         </button>
 
@@ -70,6 +89,9 @@ function CategoryCard({
 
       {open && (
         <div style={{ padding: "0 16px 16px" }}>
+          {category.description && (
+            <div style={{ fontSize: 12.5, color: "#8B8F7F", lineHeight: 1.5, marginBottom: 16 }}>{category.description}</div>
+          )}
           {numericFields.map((f) => {
             const chartData = sorted
               .filter((e) => e.values[f.id] !== undefined && e.values[f.id] !== "")

@@ -50,10 +50,12 @@ function coreCategoryDefs() {
   return [
     {
       name: "Loose leash walking",
+      icon: "🦮",
       fields: () => [f("Duration", "number", "min"), f("Place", "text"), f("Rating", "scale")],
     },
     {
       name: "New places",
+      icon: "🗺️",
       fields: () => [f("Duration", "number", "min"), f("Place", "text"), f("Rating", "scale")],
     },
   ];
@@ -68,7 +70,7 @@ function ensureCoreCategories(state) {
         (c) => c.dogId === dog.id && c.name.trim().toLowerCase() === def.name.toLowerCase()
       );
       if (!exists) {
-        categories.push({ id: uid(), dogId: dog.id, name: def.name, fields: def.fields() });
+        categories.push({ id: uid(), dogId: dog.id, name: def.name, icon: def.icon, fields: def.fields() });
         changed = true;
       }
     });
