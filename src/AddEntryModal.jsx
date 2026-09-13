@@ -57,8 +57,24 @@ function AddEntryModal({ category, entry, onClose, onSave }) {
 
           {currentStep && (
             <React.Fragment>
-              <div style={{ fontSize: 12, color: "#5B6459", marginBottom: 8 }}>
-                {doneCount}/{currentStep.tasks.length} tasks checked
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 12, color: "#5B6459" }}>
+                  {doneCount}/{currentStep.tasks.length} tasks checked
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const allDone = doneCount === currentStep.tasks.length;
+                    const next = {};
+                    currentStep.tasks.forEach((t) => {
+                      next[t.id] = !allDone;
+                    });
+                    setTaskChecks(next);
+                  }}
+                  style={{ border: "none", background: "transparent", color: "#4C6B4F", fontSize: 12, fontWeight: 500, cursor: "pointer", padding: 0 }}
+                >
+                  {doneCount === currentStep.tasks.length ? "Clear all" : "Mark all done"}
+                </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {currentStep.tasks.map((t) => (
