@@ -22,6 +22,7 @@ function CategoryCard({
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1));
   const numericFields = category.fields.filter((f) => f.type !== "text");
   const lastEntry = sorted[sorted.length - 1];
+  const currentStreak = computeStreak(entries).current;
 
   const stepIndex = lastEntry?.stepId && category.steps ? category.steps.findIndex((s) => s.id === lastEntry.stepId) : -1;
   const stepProgress = category.steps && stepIndex >= 0 ? `Day ${stepIndex + 1} of ${category.steps.length}` : null;
@@ -63,7 +64,12 @@ function CategoryCard({
             style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", padding: "4px 0" }}
           >
             <div style={{ fontWeight: 500, fontSize: 16, color: "#1E2B22" }}>{category.name}</div>
-            <div style={{ fontSize: 13, color: "#5B6459", marginTop: 2 }}>{subtitle}</div>
+            <div style={{ fontSize: 13, color: "#5B6459", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+              <span>{subtitle}</span>
+              {currentStreak >= 3 && (
+                <span style={{ color: "#B5652E", fontWeight: 500, whiteSpace: "nowrap" }}>🔥 {currentStreak}</span>
+              )}
+            </div>
           </button>
         </div>
 

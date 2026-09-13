@@ -38,7 +38,7 @@ function resizeImageFile(file, maxDim, quality) {
   });
 }
 
-function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
+function DogProfileView({ dog, accent, accentLight, onUpdateDog, categories = [], entries = [] }) {
   const fileInputRef = useRef(null);
   const [cropSession, setCropSession] = useState(null);
   const [resizeError, setResizeError] = useState(false);
@@ -161,6 +161,8 @@ function DogProfileView({ dog, accent, accentLight, onUpdateDog }) {
           Add a birthday to see {dog.name}'s age here.
         </p>
       )}
+
+      <AchievementsSection categories={categories} entries={entries} accent={accent} accentLight={accentLight} />
 
       {cropSession && (
         <ImageCropModal

@@ -25,11 +25,19 @@ function App() {
   const longPressTimer = useRef(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
+  const [celebration, setCelebration] = useState(null);
+  const celebrationTimer = useRef(null);
 
   const showToast = (message) => {
     clearTimeout(toastTimer.current);
     setToast(message);
     toastTimer.current = setTimeout(() => setToast(null), 1800);
+  };
+
+  const triggerCelebration = (c) => {
+    clearTimeout(celebrationTimer.current);
+    setCelebration(c);
+    celebrationTimer.current = setTimeout(() => setCelebration(null), 3400);
   };
 
   const persist = (next) => {
@@ -182,9 +190,13 @@ function App() {
 
   const addEntry = (categoryId, payload) => {
     const entry = { id: uid(), categoryId, ...payload };
+    const category = state.categories.find((c) => c.id === categoryId);
+    const priorEntries = state.entries.filter((e) => e.categoryId === categoryId);
     persist({ ...state, entries: [...state.entries, entry] });
     setEntryModalCategory(null);
     showToast("Session logged");
+    const celebrationResult = category ? detectCelebration(category, priorEntries, entry) : null;
+    if (celebrationResult) triggerCelebration(celebrationResult);
   };
 
   const updateEntry = (entryId, payload) => {
@@ -376,6 +388,8 @@ function App() {
                 accent={accent}
                 accentLight={accentLight}
                 onUpdateDog={(patch) => updateDog(activeDog.id, patch)}
+                categories={dogCategories}
+                entries={state.entries.filter((e) => dogCategories.some((c) => c.id === e.categoryId))}
               />
             )
           ) : view === "log" ? (
@@ -525,6 +539,8 @@ function App() {
           }}
         />
       )}
+
+      <Celebration celebration={celebration} />
 
       {toast && (
         <div
