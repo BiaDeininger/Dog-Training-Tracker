@@ -144,24 +144,15 @@ const TRAINING_TEMPLATES = [
       "Teach the dog that a mat or bed is a cue to lie down and relax — useful for mealtimes, visitors, or out in public.",
     fields: () => [templateField("Duration", "number", "min"), templateField("Distractions handled", "scale")],
     steps: () => [
-      templateStep("Step 1 — Notice the mat", ["Mark and reward any look at, sniff, or step toward the mat"]),
-      templateStep("Step 2 — Get on the mat", ["Reward all four feet on the mat"]),
-      templateStep("Step 3 — Sit or down on the mat", ["Reward a sit or down on the mat"]),
-      templateStep("Step 4 — Add duration", [
-        "Reward for staying on the mat a few seconds",
-        "Gradually stretch the wait before rewarding",
-      ]),
-      templateStep("Step 5 — Add distance", [
-        "Take one step away, return, reward on the mat",
-        "Take several steps away, return, reward on the mat",
-      ]),
-      templateStep("Step 6 — Add distractions", [
-        "Practice with a toy or object moving nearby",
-        "Practice with another person walking around",
-      ]),
+      templateStep("Step 1 — Notice the mat", ["Look at, sniff, or step toward the mat"]),
+      templateStep("Step 2 — Get on the mat", ["All four feet on the mat"]),
+      templateStep("Step 3 — Sit or down on the mat", ["Sit or down on the mat"]),
+      templateStep("Step 4 — Add duration", ["Stay on the mat a few seconds", "Stay on the mat longer"]),
+      templateStep("Step 5 — Add distance", ["Step away, then return", "Step further away, then return"]),
+      templateStep("Step 6 — Add distractions", ["A toy or object moves nearby", "Another person walks around"]),
       templateStep("Step 7 — Take it on the road", [
-        "Practice a mat settle in a new room",
-        "Practice a mat settle somewhere out of the house (café, park bench, vet waiting room)",
+        "Practice in a new room",
+        "Practice somewhere out of the house (café, park bench, vet waiting room)",
       ]),
     ],
   },
