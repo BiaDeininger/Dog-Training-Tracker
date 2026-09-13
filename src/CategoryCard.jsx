@@ -35,6 +35,9 @@ function CategoryCard({
                 ? "No entries yet"
                 : `${sorted.length} entr${sorted.length === 1 ? "y" : "ies"} · last ${fmtDate(lastEntry.date)}`}
             </div>
+            {category.description && (
+              <div style={{ fontSize: 12, color: "#8B8F7F", marginTop: 3, lineHeight: 1.4 }}>{category.description}</div>
+            )}
           </div>
         </button>
 
@@ -107,7 +110,10 @@ function CategoryCard({
 
           {sorted.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {sorted.slice().reverse().map((e) => (
+              {sorted.slice().reverse().map((e) => {
+                const step = e.stepId && category.steps ? category.steps.find((s) => s.id === e.stepId) : null;
+                const stepDone = step ? step.tasks.filter((t) => e.taskChecks && e.taskChecks[t.id]).length : 0;
+                return (
                 <div
                   key={e.id}
                   onClick={() => onEditEntry(e)}
@@ -116,7 +122,14 @@ function CategoryCard({
                   style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: "10px 12px", fontSize: 13, cursor: "pointer" }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDate(e.date)}</div>
+                    <div>
+                      <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDate(e.date)}</div>
+                      {step && (
+                        <div style={{ fontSize: 12, color: accent, marginTop: 2, fontWeight: 500 }}>
+                          {step.label} · {stepDone}/{step.tasks.length} tasks
+                        </div>
+                      )}
+                    </div>
                     {confirmingEntryId === e.id ? (
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(ev) => ev.stopPropagation()}>
                         <button
@@ -165,7 +178,8 @@ function CategoryCard({
                   </div>
                   {e.notes && <div style={{ color: "#5B6459", marginTop: 6, fontStyle: "italic" }}>{e.notes}</div>}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

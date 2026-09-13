@@ -156,8 +156,8 @@ function App() {
     if (activeDogId === dogId) setActiveDogId(nextDogs[0]?.id || null);
   };
 
-  const addCategory = ({ name, fields }) => {
-    const newCat = { id: uid(), dogId: activeDog.id, name, fields };
+  const addCategory = (payload) => {
+    const newCat = { id: uid(), dogId: activeDog.id, ...payload };
     persist({ ...state, categories: [...state.categories, newCat] });
     setShowAddCategory(false);
   };
@@ -176,17 +176,17 @@ function App() {
     });
   };
 
-  const addEntry = (categoryId, { date, values, notes }) => {
-    const entry = { id: uid(), categoryId, date, values, notes };
+  const addEntry = (categoryId, payload) => {
+    const entry = { id: uid(), categoryId, ...payload };
     persist({ ...state, entries: [...state.entries, entry] });
     setEntryModalCategory(null);
     showToast("Session logged");
   };
 
-  const updateEntry = (entryId, { date, values, notes }) => {
+  const updateEntry = (entryId, payload) => {
     persist({
       ...state,
-      entries: state.entries.map((e) => (e.id === entryId ? { ...e, date, values, notes } : e)),
+      entries: state.entries.map((e) => (e.id === entryId ? { ...e, ...payload } : e)),
     });
     setEntryModalCategory(null);
     showToast("Changes saved");
