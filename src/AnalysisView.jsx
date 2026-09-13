@@ -19,6 +19,10 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
   const dates = rangedEntries.map((e) => e.date).sort();
   const firstDate = dates[0], lastDate = dates[dates.length - 1];
 
+  const hasLoggedDetail = (e) =>
+    (e.notes && e.notes.trim()) || Object.values(e.values || {}).some((v) => v !== undefined && v !== "");
+  const loggedEntries = rangedEntries.filter(hasLoggedDetail);
+
   const staleCats =
     scope === "all"
       ? categories.filter((c) => {
@@ -30,15 +34,29 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
       : [];
 
   const buildNotesPrompt = () => {
-    const notesEntries = rangedEntries.filter((e) => e.notes && e.notes.trim());
-    if (notesEntries.length === 0) return null;
+    if (loggedEntries.length === 0) return null;
     const catName = (id) => categories.find((c) => c.id === id)?.name || "";
-    const sorted = [...notesEntries].sort((a, b) => (a.date < b.date ? -1 : 1));
+    const catFields = (id) => categories.find((c) => c.id === id)?.fields || [];
+    const describeEntry = (e) => {
+      const details = catFields(e.categoryId)
+        .map((f) => {
+          const v = e.values?.[f.id];
+          if (v === undefined || v === "") return null;
+          const shown = f.type === "scale" ? `${v}/5` : f.unit ? `${v} ${f.unit}` : v;
+          return `${f.label}: ${shown}`;
+        })
+        .filter(Boolean)
+        .join(", ");
+      let line = `${e.date} — ${catName(e.categoryId)}`;
+      if (details) line += ` (${details})`;
+      if (e.notes && e.notes.trim()) line += `: ${e.notes.trim()}`;
+      return line;
+    };
+    const sorted = [...loggedEntries].sort((a, b) => (a.date < b.date ? -1 : 1));
     const scopeLabel = scope === "all" ? "across all training types" : `for "${scopedCategories[0]?.name}" sessions`;
-    const transcript = sorted.map((e) => `${e.date} — ${catName(e.categoryId)}: ${e.notes}`).join("\n");
+    const transcript = sorted.map(describeEntry).join("\n");
     return {
-      notesEntries,
-      text: `Here are my dated training journal notes for my dog ${dog.name}, ${scopeLabel}. Please identify recurring triggers or patterns, signs of progress over time, and anything worth watching or adjusting:\n\n${transcript}`,
+      text: `Here is my dated training journal for my dog ${dog.name}, ${scopeLabel}. Each line lists the training type, any logged details (like duration, place, and rating), and free-text notes when I added them. Please identify recurring triggers or patterns — including how the place or environment affects performance — signs of progress over time, and anything worth watching or adjusting:\n\n${transcript}`,
     };
   };
 
@@ -61,9 +79,9 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
     setAiError("");
     setAiResult(null);
     try {
-      const prompt = `${built.text}\n\nIn plain, concise language (short paragraphs or a short bullet list, no headers, no markdown bold), identify: 1) recurring triggers or patterns, 2) signs of progress over time, 3) anything worth watching or adjusting. Base this only on what's in the notes. Keep it under 180 words.`;
+      const prompt = `${built.text}\n\nIn plain, concise language (short paragraphs or a short bullet list, no headers, no markdown bold), identify: 1) recurring triggers or patterns — including how the place or environment affects the dog, 2) signs of progress over time, 3) anything worth watching or adjusting. Base this only on what's in the log below. Keep it under 180 words.`;
       const text = await callAIProvider(aiConfig, prompt);
-      setAiResult(text || "No insights could be generated from these notes.");
+      setAiResult(text || "No insights could be generated from this log.");
     } catch (e) {
       console.error("AI analysis failed:", e);
       setAiError(e.message || "Couldn't reach the AI provider. Check your API key and try again.");
@@ -72,7 +90,6 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
     }
   };
 
-  const notesEntries = rangedEntries.filter((e) => e.notes && e.notes.trim());
   const rangeOptions = [
     { key: "all", label: "All time" },
     { key: "week", label: "Last week" },
@@ -242,7 +259,7 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
         <React.Fragment>
           <button
             onClick={runAIAnalysis}
-            disabled={aiLoading || notesEntries.length === 0}
+            disabled={aiLoading || loggedEntries.length === 0}
             style={{
               display: "flex",
               alignItems: "center",
@@ -252,16 +269,16 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
               padding: "11px",
               borderRadius: 10,
               border: "none",
-              background: notesEntries.length === 0 ? "#EAEAE0" : accentLight,
-              color: notesEntries.length === 0 ? "#A9AA9C" : accent,
+              background: loggedEntries.length === 0 ? "#EAEAE0" : accentLight,
+              color: loggedEntries.length === 0 ? "#A9AA9C" : accent,
               fontWeight: 500,
               fontSize: 14,
-              cursor: notesEntries.length === 0 || aiLoading ? "default" : "pointer",
+              cursor: loggedEntries.length === 0 || aiLoading ? "default" : "pointer",
               marginBottom: 8,
             }}
           >
             {aiLoading && <span className="spin">⟳</span>}
-            {aiLoading ? "Reading your notes…" : notesEntries.length === 0 ? "No notes in this range" : "✨ Analyze notes with AI"}
+            {aiLoading ? "Reading your training log…" : loggedEntries.length === 0 ? "No sessions in this range" : "✨ Analyze with AI"}
           </button>
 
           {aiError && <p style={{ fontSize: 13, color: "#B5432E", marginBottom: 8 }}>{aiError}</p>}
@@ -287,8 +304,8 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
       ) : (
         <React.Fragment>
           <p style={{ fontSize: 13, color: "#5B6459", marginBottom: 6 }}>
-            Connect a Google Gemini key to get patterns, triggers, and progress signals pulled from your notes
-            automatically.
+            Connect a Google Gemini key to get patterns, triggers, and progress signals pulled from your logged
+            sessions automatically — durations, places, ratings, and notes together.
           </p>
           <p style={{ fontSize: 12, color: "#8B8F7F", marginBottom: 10 }}>
             Free — no credit card needed. Takes about a minute to set up.
@@ -317,10 +334,10 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
         </React.Fragment>
       )}
 
-      <p style={{ fontSize: 12, color: "#8B8F7F", marginBottom: 6 }}>Or just copy the notes and paste them anywhere yourself:</p>
+      <p style={{ fontSize: 12, color: "#8B8F7F", marginBottom: 6 }}>Or just copy the training log and paste it anywhere yourself:</p>
       <button
         onClick={copyNotes}
-        disabled={notesEntries.length === 0}
+        disabled={loggedEntries.length === 0}
         style={{
           display: "flex",
           alignItems: "center",
@@ -331,13 +348,13 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
           borderRadius: 10,
           border: "1px solid #D7DACB",
           background: "transparent",
-          color: notesEntries.length === 0 ? "#A9AA9C" : "#5B6459",
+          color: loggedEntries.length === 0 ? "#A9AA9C" : "#5B6459",
           fontWeight: 500,
           fontSize: 13,
-          cursor: notesEntries.length === 0 ? "default" : "pointer",
+          cursor: loggedEntries.length === 0 ? "default" : "pointer",
         }}
       >
-        {copied ? "Copied ✓" : notesEntries.length === 0 ? "No notes in this range" : `Copy ${notesEntries.length} note${notesEntries.length === 1 ? "" : "s"}`}
+        {copied ? "Copied ✓" : loggedEntries.length === 0 ? "No sessions in this range" : `Copy ${loggedEntries.length} session${loggedEntries.length === 1 ? "" : "s"}`}
       </button>
     </div>
   );
