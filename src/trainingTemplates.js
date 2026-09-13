@@ -136,47 +136,6 @@ const TRAINING_TEMPLATES = [
     ],
   },
   {
-    id: "crate-training",
-    icon: "📦",
-    name: "Crate training",
-    source: null,
-    description:
-      "Build a positive association with the crate at the dog's own pace, from sniffing it out to relaxed time with the door closed.",
-    fields: () => [templateField("Time in crate", "number", "min"), templateField("Comfort level", "scale")],
-    steps: () => [
-      templateStep("Stage 1 — Getting used to it", [
-        "Leave the crate open and toss treats near the entrance",
-        "Toss treats just inside the open crate, let the dog come and go freely",
-        "Feed a meal near the open crate",
-      ]),
-      templateStep("Stage 2 — Voluntary entry", [
-        "Feed a meal just inside the open crate",
-        "Feed a full meal inside the open crate",
-        "Reward calm settling inside the open crate",
-      ]),
-      templateStep("Stage 3 — Closing the door briefly", [
-        "Close the door for a few seconds while the dog eats, then open",
-        "Close the door for 10–20 seconds after eating, then open calmly",
-        "Close the door, step back one step, return, open",
-      ]),
-      templateStep("Stage 4 — Building duration", [
-        "Close the door and sit nearby for 1–2 minutes",
-        "Close the door and move around the room for a few minutes",
-        "Close the door and leave the dog with a stuffed chew for 5+ minutes",
-      ]),
-      templateStep("Stage 5 — Independence", [
-        "Close the door, leave the room for under a minute, return calmly",
-        "Close the door, leave the room for several minutes, return calmly",
-        "Close the door, leave the house briefly, return with a calm greeting",
-      ]),
-      templateStep("Stage 6 — Real-world use", [
-        "Crate for a short errand",
-        "Crate overnight",
-        "Calm entry and exit with no fuss either way",
-      ]),
-    ],
-  },
-  {
     id: "settle-on-a-mat",
     icon: "🟫",
     name: "Settle on a mat",
