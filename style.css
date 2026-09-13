@@ -16,3 +16,25 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .spin { animation: spin 1s linear infinite; display: inline-block; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 button { font-family: inherit; }
+
+/* Gamification: confetti burst (personal best) and unicorn fly-by (perfect
+   scale rating) — see src/Celebrations.jsx. */
+.confetti-piece {
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(0.4, 0.1, 0.6, 1);
+  animation-fill-mode: forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--confetti-drift, 0), 100vh) rotate(var(--confetti-rotate, 360deg)); opacity: 0.9; }
+}
+.unicorn-flyby {
+  position: absolute;
+  font-size: 56px;
+  animation: unicorn-fly 2.6s ease-in-out forwards;
+}
+@keyframes unicorn-fly {
+  0% { left: -15vw; top: 20%; transform: scaleX(-1); }
+  50% { top: 12%; }
+  100% { left: 105vw; top: 24%; transform: scaleX(-1); }
+}

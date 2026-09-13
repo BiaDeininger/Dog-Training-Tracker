@@ -72,3 +72,43 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
+
+test("gamification: a personal best shows a banner and unlocks an achievement badge", async ({ page }) => {
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+  page.on("pageerror", (err) => consoleErrors.push(err.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "+ Add your first dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Fido");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // "Loose leash walking" is a built-in training with a numeric "Duration (min)" field.
+  await page.getByRole("button", { name: "Loose leash walking", exact: false }).click();
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.locator('input[type="number"]').fill("10");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("Session logged")).toBeVisible();
+
+  // A second, higher value beats the first and should trigger the personal-best banner.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.locator('input[type="number"]').fill("25");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("New record: 25 min Duration!")).toBeVisible();
+
+  // Editing that same entry afterward must not re-trigger the banner.
+  await page.getByRole("button", { name: "Edit entry" }).first().click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved")).toBeVisible();
+  await expect(page.getByText("New record:")).toHaveCount(0);
+
+  // The dog's Achievements section should show this training's "first session" badge unlocked.
+  await page.getByRole("button", { name: "Fido's profile" }).click();
+  await expect(page.getByText("Achievements")).toBeVisible();
+  await expect(page.getByText("First session logged")).toBeVisible();
+
+  expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
+});
