@@ -100,7 +100,9 @@ test("gamification: a personal best shows a banner and unlocks an achievement ba
   await expect(page.getByText("New record: 25 min Duration!")).toBeVisible();
 
   // Editing that same entry afterward must not re-trigger the banner.
-  await page.getByRole("button", { name: "Edit entry" }).first().click();
+  // Sessions are collapsed to date + rating by default, so expand it first.
+  await page.getByRole("button", { name: "Expand entry" }).first().click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Changes saved")).toBeVisible();
   await expect(page.getByText("New record:")).toHaveCount(0);

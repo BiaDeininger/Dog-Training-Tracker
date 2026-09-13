@@ -1,7 +1,8 @@
 // The collapsible card for one training (e.g. "Loose leash walking") on the
-// Log tab: shows its history, a mini chart per numeric field, and lets you
-// log a new session or delete the training. Reordering is a long-press drag
-// on the "⠿" handle, driven by the parent (App owns the category order).
+// Log tab: shows its logged sessions (collapsed to date + rating, expand to
+// see the rest) and lets you log a new session or delete the training.
+// Trend charts live on the Insights tab instead. Reordering is a long-press
+// drag on the "⠿" handle, driven by the parent (App owns the category order).
 
 function CategoryCard({
   category,
@@ -19,8 +20,9 @@ function CategoryCard({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingEntryId, setConfirmingEntryId] = useState(null);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [expandedEntryId, setExpandedEntryId] = useState(null);
   const sorted = [...entries].sort((a, b) => (a.date < b.date ? -1 : 1));
-  const numericFields = category.fields.filter((f) => f.type !== "text");
+  const ratingField = category.fields.find((f) => f.type === "scale");
   const lastEntry = sorted[sorted.length - 1];
   const currentStreak = computeStreak(entries).current;
 
@@ -105,22 +107,6 @@ function CategoryCard({
           {category.description && (
             <div style={{ fontSize: 12.5, color: "#8B8F7F", lineHeight: 1.5, marginBottom: 16 }}>{category.description}</div>
           )}
-          {numericFields.map((f) => {
-            const chartData = sorted
-              .filter((e) => e.values[f.id] !== undefined && e.values[f.id] !== "")
-              .map((e) => ({ date: fmtDate(e.date), value: Number(e.values[f.id]) }));
-            if (chartData.length < 2) return null;
-            return (
-              <div key={f.id} style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: "#5B6459", marginBottom: 6, fontWeight: 500 }}>
-                  {f.label}
-                  {f.unit ? ` (${f.unit})` : ""}
-                </div>
-                <MiniChart data={chartData} color={accent} />
-              </div>
-            );
-          })}
-
           <button
             onClick={onAddEntry}
             style={{
@@ -148,70 +134,106 @@ function CategoryCard({
               {sorted.slice().reverse().map((e) => {
                 const step = e.stepId && category.steps ? category.steps.find((s) => s.id === e.stepId) : null;
                 const stepDone = step ? step.tasks.filter((t) => e.taskChecks && e.taskChecks[t.id]).length : 0;
+                const isExpanded = expandedEntryId === e.id;
+                const ratingValue = ratingField ? e.values[ratingField.id] : undefined;
+                const otherFields = category.fields.filter((f) => f.id !== ratingField?.id);
                 return (
                 <div
                   key={e.id}
-                  onClick={() => onEditEntry(e)}
-                  role="button"
-                  aria-label="Edit entry"
-                  style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: "10px 12px", fontSize: 13, cursor: "pointer" }}
+                  style={{ border: "1px solid #EAEAE0", borderRadius: 10, fontSize: 13, overflow: "hidden" }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
-                      <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDateTime(e.date, e.time)}</div>
+                  <button
+                    onClick={() => setExpandedEntryId(isExpanded ? null : e.id)}
+                    aria-expanded={isExpanded}
+                    aria-label={isExpanded ? "Collapse entry" : "Expand entry"}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      font: "inherit",
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, color: "#1E2B22", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {fmtDateTime(e.date, e.time)}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      {ratingValue !== undefined && ratingValue !== "" && (
+                        <span style={{ color: accent, fontWeight: 500, whiteSpace: "nowrap" }}>
+                          {ratingField.label}: {ratingValue}
+                        </span>
+                      )}
+                      <span style={{ color: "#5B6459", fontSize: 12 }}>{isExpanded ? "︿" : "﹀"}</span>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div style={{ padding: "0 12px 12px" }}>
                       {step && (
-                        <div style={{ fontSize: 12, color: accent, marginTop: 2, fontWeight: 500 }}>
+                        <div style={{ fontSize: 12, color: accent, marginBottom: 6, fontWeight: 500 }}>
                           {step.label} · {stepDone}/{step.tasks.length} tasks
                         </div>
                       )}
-                    </div>
-                    {confirmingEntryId === e.id ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(ev) => ev.stopPropagation()}>
-                        <button
-                          onClick={() => {
-                            setConfirmingEntryId(null);
-                            onDeleteEntry(e.id);
-                          }}
-                          style={{ border: "none", background: "#B5432E", color: "#FFFFFF", fontSize: 11, fontWeight: 500, borderRadius: 6, padding: "4px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
-                        >
-                          Delete
-                        </button>
-                        <button
-                          onClick={() => setConfirmingEntryId(null)}
-                          style={{ border: "none", background: "transparent", color: "#5B6459", fontSize: 11, cursor: "pointer", padding: "4px 2px" }}
-                        >
-                          Cancel
-                        </button>
+                      <div style={{ color: "#5B6459", display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        {otherFields.map((f) => {
+                          const v = e.values[f.id];
+                          if (v === undefined || v === "") return null;
+                          return (
+                            <span key={f.id}>
+                              {f.label}:{" "}
+                              <strong style={{ color: "#1E2B22", fontWeight: 500 }}>
+                                {v}
+                                {f.unit ? ` ${f.unit}` : ""}
+                              </strong>
+                            </span>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <button
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          setConfirmingEntryId(e.id);
-                        }}
-                        aria-label="Delete entry"
-                        style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", padding: 0, fontSize: 13 }}
-                      >
-                        🗑
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ color: "#5B6459", marginTop: 4, display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {category.fields.map((f) => {
-                      const v = e.values[f.id];
-                      if (v === undefined || v === "") return null;
-                      return (
-                        <span key={f.id}>
-                          {f.label}:{" "}
-                          <strong style={{ color: "#1E2B22", fontWeight: 500 }}>
-                            {v}
-                            {f.unit ? ` ${f.unit}` : ""}
-                          </strong>
-                        </span>
-                      );
-                    })}
-                  </div>
-                  {e.notes && <div style={{ color: "#5B6459", marginTop: 6, fontStyle: "italic" }}>{e.notes}</div>}
+                      {e.notes && <div style={{ color: "#5B6459", marginTop: 6, fontStyle: "italic" }}>{e.notes}</div>}
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10 }}>
+                        <button
+                          onClick={() => onEditEntry(e)}
+                          style={{ border: "none", background: "transparent", color: accent, fontSize: 12, fontWeight: 500, cursor: "pointer", padding: 0 }}
+                        >
+                          Edit
+                        </button>
+                        {confirmingEntryId === e.id ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <button
+                              onClick={() => {
+                                setConfirmingEntryId(null);
+                                onDeleteEntry(e.id);
+                              }}
+                              style={{ border: "none", background: "#B5432E", color: "#FFFFFF", fontSize: 11, fontWeight: 500, borderRadius: 6, padding: "4px 8px", cursor: "pointer", whiteSpace: "nowrap" }}
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setConfirmingEntryId(null)}
+                              style={{ border: "none", background: "transparent", color: "#5B6459", fontSize: 11, cursor: "pointer", padding: "4px 2px" }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmingEntryId(e.id)}
+                            aria-label="Delete entry"
+                            style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", padding: 0, fontSize: 13 }}
+                          >
+                            🗑
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 );
               })}
