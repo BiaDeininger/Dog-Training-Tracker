@@ -152,7 +152,7 @@ function CategoryCard({
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
-                      <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDate(e.date)}</div>
+                      <div style={{ fontWeight: 500, color: "#1E2B22" }}>{fmtDateTime(e.date, e.time)}</div>
                       {step && (
                         <div style={{ fontSize: 12, color: accent, marginTop: 2, fontWeight: 500 }}>
                           {step.label} · {stepDone}/{step.tasks.length} tasks

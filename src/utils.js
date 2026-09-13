@@ -3,6 +3,10 @@
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 const todayStr = () => new Date().toISOString().slice(0, 10);
+const nowTimeStr = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
 
 const FIELD_TYPES = {
   scale: { label: "Scale (1–5)" },
@@ -13,6 +17,28 @@ const FIELD_TYPES = {
 function fmtDate(d) {
   const dt = new Date(d + "T00:00:00");
   return dt.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+// 24-hour clock throughout: `time` is always a zero-padded "HH:MM" string.
+function fmtDateTime(date, time) {
+  const day = date === todayStr() ? "Today" : fmtDate(date);
+  return time ? `${day} at ${time}` : day;
+}
+
+// Parses free-typed time text ("9:5", "930", "14:30") into a zero-padded
+// 24-hour "HH:MM" string. Used instead of a native <input type="time">,
+// whose picker widget renders in 12-hour AM/PM on many browsers/locales
+// regardless of the value's own (always 24-hour) format. Returns `fallback`
+// (typically the previous value, or "" to mean unset) if it can't parse.
+function normalizeTimeInput(raw, fallback) {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return "";
+  const match = trimmed.match(/^(\d{1,2}):?(\d{2})?$/);
+  if (!match) return fallback;
+  const h = parseInt(match[1], 10);
+  const m = match[2] !== undefined ? parseInt(match[2], 10) : 0;
+  if (Number.isNaN(h) || Number.isNaN(m) || h > 23 || m > 59) return fallback;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function daysSince(dateStr) {
