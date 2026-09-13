@@ -27,10 +27,14 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
   await expect(page.getByRole("button", { name: "Rex", exact: true })).toBeVisible();
 
   // Build a custom training from scratch (avoids depending on template wording).
+  // Includes a text field to cover the "suggest previously typed values" flow.
   await page.getByRole("button", { name: "+ New training for Rex" }).click();
   await page.getByRole("button", { name: "+ Build your own training" }).click();
   await page.getByPlaceholder("Recall training").fill("Recall");
-  await page.getByPlaceholder("e.g. Recall speed, Distraction level").fill("Speed");
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").first().fill("Speed");
+  await page.getByRole("button", { name: "+ Add another thing to track" }).click();
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").nth(1).fill("Where");
+  await page.locator("select").nth(1).selectOption("text");
   await page.getByRole("button", { name: "Create training" }).click();
 
   const card = page.getByRole("button", { name: "Recall", exact: false });
@@ -45,6 +49,7 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
   await page.getByRole("button", { name: "Edit" }).click();
   await page.locator('input[placeholder="HH:MM"]').fill("09:15");
   await page.locator('input[type="number"]').fill("12"); // the "Speed" field
+  await page.locator('input[list^="suggestions-"]').fill("Park"); // the "Where" field
   await page.getByRole("button", { name: "Save entry" }).click();
 
   await expect(page.getByText("Session logged")).toBeVisible();
@@ -56,6 +61,14 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
   await page.getByRole("button", { name: "Recall", exact: false }).click();
   await expect(page.getByText("1 entry")).toBeVisible();
   await expect(page.getByText("09:15")).toBeVisible();
+
+  // Logging a second session should suggest the previously typed "Where" value.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  const whereInput = page.locator('input[list^="suggestions-"]');
+  const suggestions = await page
+    .locator(`datalist#${await whereInput.getAttribute("list")} option`)
+    .evaluateAll((opts) => opts.map((o) => o.value));
+  expect(suggestions).toContain("Park");
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });

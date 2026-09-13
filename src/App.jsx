@@ -479,6 +479,7 @@ function App() {
         <AddEntryModal
           category={entryModalCategory}
           entry={editingEntry}
+          categoryEntries={state.entries.filter((e) => e.categoryId === entryModalCategory.id)}
           onClose={() => {
             setEntryModalCategory(null);
             setEditingEntry(null);
