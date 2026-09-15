@@ -199,6 +199,35 @@ function App() {
     if (celebrationResult) triggerCelebration(celebrationResult);
   };
 
+  // Logs the same session against several dogs at once (e.g. a walk done
+  // with two dogs together), matching each other selected dog's training by
+  // name since trainings are separate per-dog records. One persist() call so
+  // a stale `state` closure can't drop one dog's entry when the other saves.
+  const addEntryForDogs = (category, payload, dogIds) => {
+    const targets = dogIds
+      .map((dogId) =>
+        dogId === category.dogId
+          ? category
+          : state.categories.find(
+              (c) => c.dogId === dogId && c.name.trim().toLowerCase() === category.name.trim().toLowerCase()
+            )
+      )
+      .filter(Boolean);
+
+    const newEntries = targets.map((cat) => ({ id: uid(), categoryId: cat.id, ...payload }));
+    persist({ ...state, entries: [...state.entries, ...newEntries] });
+    setEntryModalCategory(null);
+
+    const dogNames = targets.map((cat) => state.dogs.find((d) => d.id === cat.dogId)?.name).filter(Boolean);
+    showToast(`Session logged for ${joinWithAnd(dogNames)}`);
+
+    targets.forEach((cat, i) => {
+      const priorEntries = state.entries.filter((e) => e.categoryId === cat.id);
+      const celebrationResult = detectCelebration(cat, priorEntries, newEntries[i]);
+      if (celebrationResult) triggerCelebration(celebrationResult);
+    });
+  };
+
   const updateEntry = (entryId, payload) => {
     persist({
       ...state,
@@ -494,12 +523,16 @@ function App() {
           category={entryModalCategory}
           entry={editingEntry}
           categoryEntries={state.entries.filter((e) => e.categoryId === entryModalCategory.id)}
+          dogs={state.dogs}
+          dogAccents={dogAccents}
+          allCategories={state.categories}
           onClose={() => {
             setEntryModalCategory(null);
             setEditingEntry(null);
           }}
-          onSave={(payload) => {
+          onSave={(payload, dogIds) => {
             if (editingEntry) updateEntry(editingEntry.id, payload);
+            else if (dogIds && dogIds.length > 1) addEntryForDogs(entryModalCategory, payload, dogIds);
             else addEntry(entryModalCategory.id, payload);
             setEditingEntry(null);
           }}

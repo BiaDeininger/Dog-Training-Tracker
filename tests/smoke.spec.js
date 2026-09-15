@@ -73,6 +73,47 @@ test("core flow: add dog, add training, log a session, and it survives a reload"
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
 
+test("multi-dog logging: one session can be logged for two dogs at once", async ({ page }) => {
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+  page.on("pageerror", (err) => consoleErrors.push(err.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "+ Add your first dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Rex");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // Adding a second dog switches the active dog to it and seeds it with the
+  // same built-in trainings (incl. "Loose leash walking") as Rex.
+  await page.getByRole("button", { name: "Add dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Luna");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // Switch back to Rex and log a "Loose leash walking" session for both dogs.
+  await page.getByRole("button", { name: "Rex", exact: true }).click();
+  await page.getByRole("button", { name: "Loose leash walking", exact: false }).click();
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+
+  await expect(page.getByText("Dogs", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Luna", exact: true }).last().click();
+  await expect(page.getByText("Logs this session for 2 dogs at once.")).toBeVisible();
+
+  await page.locator('input[type="number"]').fill("20");
+  await page.getByRole("button", { name: "Save for Rex & Luna" }).click();
+  await expect(page.getByText("Session logged for Rex & Luna")).toBeVisible();
+
+  // The session should now show up under Luna's own "Loose leash walking" too.
+  await page.getByRole("button", { name: "Luna", exact: true }).click();
+  await page.getByRole("button", { name: "Loose leash walking", exact: false }).click();
+  await expect(page.getByText("1 entry")).toBeVisible();
+
+  expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
+});
+
 test("gamification: a personal best shows a banner and unlocks an achievement badge", async ({ page }) => {
   const consoleErrors = [];
   page.on("console", (msg) => {

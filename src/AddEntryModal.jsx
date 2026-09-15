@@ -13,7 +13,7 @@
 // field on this training, most-used first, via a native <datalist> — click
 // or start typing and the browser offers matches.
 
-function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave }) {
+function AddEntryModal({ category, entry, categoryEntries = [], dogs = [], dogAccents = {}, allCategories = [], onClose, onSave }) {
   const hasSteps = category.steps && category.steps.length > 0;
   const [date, setDate] = useState(entry?.date || todayStr());
   const [time, setTime] = useState(entry ? entry.time || "" : nowTimeStr());
@@ -22,6 +22,25 @@ function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave 
   const [notes, setNotes] = useState(entry?.notes || "");
   const [stepId, setStepId] = useState(entry?.stepId || (hasSteps ? category.steps[0].id : null));
   const [taskChecks, setTaskChecks] = useState(entry?.taskChecks || {});
+
+  // Logging a new (not editing) session lets you fan it out to other dogs that
+  // have a same-named training, so e.g. a walk done with two dogs together
+  // only has to be entered once. Matched by name, since trainings are
+  // separate per-dog records — see ensureCoreCategories in storage.js.
+  const isNew = !entry;
+  const otherDogOptions = isNew
+    ? dogs
+        .filter((d) => d.id !== category.dogId)
+        .map((d) => ({
+          dog: d,
+          match: allCategories.find(
+            (c) => c.dogId === d.id && c.name.trim().toLowerCase() === category.name.trim().toLowerCase()
+          ),
+        }))
+    : [];
+  const [selectedDogIds, setSelectedDogIds] = useState([category.dogId]);
+  const toggleDog = (dogId) =>
+    setSelectedDogIds((ids) => (ids.includes(dogId) ? ids.filter((id) => id !== dogId) : [...ids, dogId]));
 
   const setVal = (fieldId, v) => setValues((old) => ({ ...old, [fieldId]: v }));
   const suggestionsFor = (fieldId) => {
@@ -39,7 +58,7 @@ function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave 
       payload.stepId = stepId;
       payload.taskChecks = taskChecks;
     }
-    onSave(payload);
+    onSave(payload, isNew ? selectedDogIds : undefined);
   };
 
   const currentStep = hasSteps ? category.steps.find((s) => s.id === stepId) : null;
@@ -47,6 +66,31 @@ function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave 
 
   return (
     <Modal title={`${entry ? "Edit" : "Log"}: ${category.name}`} onClose={onClose}>
+      {otherDogOptions.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Dogs</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <DogChip dog={dogs.find((d) => d.id === category.dogId)} c={dogAccents[category.dogId]} selected locked />
+            {otherDogOptions.map(({ dog, match }) => (
+              <DogChip
+                key={dog.id}
+                dog={dog}
+                c={dogAccents[dog.id]}
+                selected={selectedDogIds.includes(dog.id)}
+                disabled={!match}
+                title={!match ? `${dog.name} has no "${category.name}" training yet` : undefined}
+                onClick={() => match && toggleDog(dog.id)}
+              />
+            ))}
+          </div>
+          {selectedDogIds.length > 1 && (
+            <div style={{ fontSize: 12, color: "#8B8F7F", marginTop: 6 }}>
+              Logs this session for {selectedDogIds.length} dogs at once.
+            </div>
+          )}
+        </div>
+      )}
+
       <label style={labelStyle}>When</label>
       {editingWhen ? (
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
@@ -206,8 +250,61 @@ function AddEntryModal({ category, entry, categoryEntries = [], onClose, onSave 
           cursor: "pointer",
         }}
       >
-        {entry ? "Save changes" : "Save entry"}
+        {entry
+          ? "Save changes"
+          : selectedDogIds.length > 1
+          ? `Save for ${joinWithAnd(selectedDogIds.map((id) => dogs.find((d) => d.id === id)?.name).filter(Boolean))}`
+          : "Save entry"}
       </button>
     </Modal>
+  );
+}
+
+// A toggleable dog chip for the multi-dog picker, styled like the dog switcher
+// pills on the main screen (see App.jsx) with a checkmark added so it doesn't
+// read as the same single-select control.
+function DogChip({ dog, c, selected, disabled, locked, title, onClick }) {
+  if (!dog || !c) return null;
+  return (
+    <button
+      type="button"
+      onClick={locked ? undefined : onClick}
+      disabled={disabled}
+      title={title}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "8px 16px",
+        borderRadius: 999,
+        border: selected ? `2px solid ${c.accent}` : "1px solid #D7DACB",
+        background: disabled ? "#F4F5EF" : selected ? c.light : "#FFFFFF",
+        color: disabled ? "#B9BFAE" : selected ? c.accent : "#5B6459",
+        fontWeight: 500,
+        fontSize: 14,
+        whiteSpace: "nowrap",
+        cursor: locked ? "default" : disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      {selected && !disabled && (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      )}
+      {dog.photo && (
+        <span
+          style={{
+            display: "inline-block",
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            backgroundImage: `url(${dog.photo})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      )}
+      {dog.name}
+    </button>
   );
 }
