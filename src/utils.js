@@ -41,6 +41,13 @@ function normalizeTimeInput(raw, fallback) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// "Rex" | "Rex & Luna" | "Rex, Luna & Fido"
+function joinWithAnd(items) {
+  if (items.length <= 1) return items[0] || "";
+  if (items.length === 2) return `${items[0]} & ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+}
+
 function daysSince(dateStr) {
   const then = new Date(dateStr + "T00:00:00");
   const now = new Date();
