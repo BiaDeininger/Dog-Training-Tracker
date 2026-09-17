@@ -6,6 +6,7 @@ function App() {
   const [activeDogId, setActiveDogId] = useState(() => loadState().dogs[0]?.id || null);
   const [view, setView] = useState("log");
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [entryModalCategory, setEntryModalCategory] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [showManageDogs, setShowManageDogs] = useState(false);
@@ -459,6 +460,7 @@ function App() {
                     }}
                     onDeleteEntry={deleteEntry}
                     onDeleteCategory={() => deleteCategory(cat.id)}
+                    onEditCategory={() => setEditingCategory(cat)}
                     onUpdateIcon={(icon) => updateCategory(cat.id, { icon })}
                     dragHandleProps={{
                       onPointerDown: (e) => onDragHandlePointerDown(cat.id, e),
@@ -501,6 +503,10 @@ function App() {
                 accentLight={accentLight}
                 aiConfig={aiConfig}
                 onOpenAISettings={() => setShowAISettings(true)}
+                onLogCategory={(cat) => {
+                  setEntryModalCategory(cat);
+                  setEditingEntry(null);
+                }}
               />
             )
           )}
@@ -516,6 +522,19 @@ function App() {
 
       {showAddCategory && (
         <AddCategoryModal dogName={activeDog?.name} onClose={() => setShowAddCategory(false)} onSave={addCategory} />
+      )}
+
+      {editingCategory && (
+        <EditCategoryModal
+          category={editingCategory}
+          entries={state.entries.filter((e) => e.categoryId === editingCategory.id)}
+          onClose={() => setEditingCategory(null)}
+          onSave={(patch) => {
+            updateCategory(editingCategory.id, patch);
+            setEditingCategory(null);
+            showToast("Training updated");
+          }}
+        />
       )}
 
       {entryModalCategory && (

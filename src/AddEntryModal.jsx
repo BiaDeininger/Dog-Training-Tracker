@@ -193,7 +193,8 @@ function AddEntryModal({ category, entry, categoryEntries = [], dogs = [], dogAc
         </div>
       )}
 
-      {category.fields.map((f) => (
+      {/* Archived fields (removed via "Edit training") stay on past entries but don't appear here. */}
+      {category.fields.filter((f) => !f.archived).map((f) => (
         <div key={f.id} style={{ marginBottom: 16 }}>
           <label style={labelStyle}>
             {f.label}
