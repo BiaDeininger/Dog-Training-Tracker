@@ -155,3 +155,51 @@ test("gamification: a personal best shows a banner and unlocks an achievement ba
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
+
+test("editing a training: adding/removing tracked fields doesn't wipe already-logged data", async ({ page }) => {
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+  page.on("pageerror", (err) => consoleErrors.push(err.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "+ Add your first dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Rex");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await page.getByRole("button", { name: "+ New training for Rex" }).click();
+  await page.getByRole("button", { name: "+ Build your own training" }).click();
+  await page.getByPlaceholder("Recall training").fill("Recall");
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").first().fill("Speed");
+  await page.getByRole("button", { name: "Create training" }).click();
+
+  await page.getByRole("button", { name: "Recall", exact: false }).click();
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.locator('input[type="number"]').fill("12");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("Session logged")).toBeVisible();
+
+  // Edit the training: add a field, and remove the one that already has history.
+  await page.getByRole("button", { name: "Update training" }).click();
+  await expect(page.getByText("Logged in 1 session")).toBeVisible();
+  await page.getByRole("button", { name: "+ Add another thing to track" }).click();
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").nth(1).fill("Distance");
+  await page.getByRole("button", { name: "Remove field" }).first().click();
+  await expect(page.getByText("Not tracked anymore")).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Training updated")).toBeVisible();
+
+  // The removed field shouldn't appear on new sessions, but the new one should.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await expect(page.getByText("Distance", { exact: true })).toBeVisible();
+  await expect(page.getByText("Speed", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // The already-logged session should still show the removed field's value.
+  await page.getByRole("button", { name: "Expand entry" }).first().click();
+  await expect(page.getByText("Speed: 12")).toBeVisible();
+
+  expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
+});

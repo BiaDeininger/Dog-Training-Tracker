@@ -2,7 +2,7 @@
 // charts per field, and the notes-insights panel (AI analysis or manual
 // copy-paste).
 
-function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig, onOpenAISettings }) {
+function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig, onOpenAISettings, onLogCategory }) {
   const [scope, setScope] = useState("all");
   const [range, setRange] = useState("all");
   const [customStart, setCustomStart] = useState("");
@@ -99,7 +99,8 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
     { key: "custom", label: "Custom" },
   ];
 
-  const streakTitle = streak.current > 0 ? `${streak.current}-day streak` : "No streak yet";
+  const streakTitle =
+    streak.current > 0 ? `${streak.current}-day streak` : streak.longest > 0 ? "Streak broken" : "No streak yet";
   const streakSubtitle =
     streak.current > 0
       ? (streak.loggedToday ? "Logged today — keep it going tomorrow" : "Log today to keep it going") +
@@ -122,7 +123,12 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
           marginBottom: 18,
         }}
       >
-        <span style={{ fontSize: 26, lineHeight: 1 }}>🔥</span>
+        {streak.current > 0 ? (
+          <span style={{ fontSize: 26, lineHeight: 1 }}>🔥</span>
+        ) : streak.longest > 0 ? (
+          // Grayed out rather than gone entirely — signals "you had one, it lapsed" instead of "never started".
+          <span style={{ fontSize: 26, lineHeight: 1, filter: "grayscale(1)", opacity: 0.4 }}>🔥</span>
+        ) : null}
         <div>
           <div style={{ fontSize: 18, fontWeight: 600, color: streak.current > 0 ? accent : "#1E2B22" }}>{streakTitle}</div>
           <div style={{ fontSize: 12.5, color: "#5B6459", marginTop: 2 }}>{streakSubtitle}</div>
@@ -189,36 +195,53 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18, marginTop: 4 }}>
-        <div style={{ background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 12, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, color: "#5B6459" }}>Sessions logged</div>
-          <div style={{ fontSize: 22, fontWeight: 500, color: "#1E2B22" }}>{rangedEntries.length}</div>
+      <div style={{ display: "flex", background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 12, padding: "14px 8px", marginBottom: 18, marginTop: 4 }}>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: "#1E2B22" }}>{rangedEntries.length}</div>
+          <div style={{ fontSize: 11, color: "#8B8F7F", marginTop: 2 }}>Sessions</div>
         </div>
-        <div style={{ background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 12, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, color: "#5B6459" }}>Covers</div>
-          <div style={{ fontSize: 14, fontWeight: 500, color: "#1E2B22", marginTop: 3 }}>
-            {firstDate ? `${fmtDate(firstDate)} – ${fmtDate(lastDate)}` : "No entries in range"}
+        <div style={{ width: 1, background: "#E4E6DA" }} />
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: "#1E2B22" }}>{scopedCategories.length}</div>
+          <div style={{ fontSize: 11, color: "#8B8F7F", marginTop: 2 }}>Training{scopedCategories.length === 1 ? "" : "s"}</div>
+        </div>
+        <div style={{ width: 1, background: "#E4E6DA" }} />
+        <div style={{ flex: 1, textAlign: "center", padding: "0 4px" }}>
+          <div style={{ fontSize: firstDate ? 13 : 12, fontWeight: 600, color: firstDate ? "#1E2B22" : "#8B8F7F", marginTop: firstDate ? 3 : 0 }}>
+            {firstDate ? `${fmtDate(firstDate)} – ${fmtDate(lastDate)}` : "No entries"}
           </div>
+          <div style={{ fontSize: 11, color: "#8B8F7F", marginTop: 2 }}>Range</div>
         </div>
       </div>
 
       {staleCats.length > 0 && (
-        <div style={{ background: accentLight, borderRadius: 12, padding: "12px 14px", marginBottom: 18 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: accent, marginBottom: 4 }}>Could use attention</div>
-          <div style={{ fontSize: 13, color: "#1E2B22" }}>
-            {staleCats
-              .map((c) => {
-                const catEntries = entries.filter((e) => e.categoryId === c.id);
-                if (catEntries.length === 0) return `${c.name} (never logged)`;
-                const last = catEntries.map((e) => e.date).sort().slice(-1)[0];
-                return `${c.name} (${daysSince(last)}d ago)`;
-              })
-              .join(" · ")}
+        <div style={{ background: "#FFFFFF", border: "1px solid #F3E3D5", borderLeft: "3px solid #B5652E", borderRadius: 12, padding: "12px 14px", marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#B5652E", marginBottom: 6 }}>
+            <span>⏳</span>
+            <span>Needs attention</span>
           </div>
+          {staleCats.map((c) => {
+            const catEntries = entries.filter((e) => e.categoryId === c.id);
+            const last = catEntries.map((e) => e.date).sort().slice(-1)[0];
+            const label = last ? `${daysSince(last)}d ago` : "never logged";
+            return (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", fontSize: 13 }}>
+                <span style={{ color: "#1E2B22" }}>
+                  {c.name} <span style={{ color: "#8B8F7F" }}>· {label}</span>
+                </span>
+                <button
+                  onClick={() => onLogCategory && onLogCategory(c)}
+                  style={{ border: "none", background: "transparent", color: "#B5652E", fontWeight: 500, fontSize: 13, cursor: "pointer", padding: 0 }}
+                >
+                  Log now
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      <div style={{ fontSize: 15, fontWeight: 500, color: "#1E2B22", marginBottom: 10 }}>Trends</div>
+      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, fontWeight: 500, color: "#1E2B22", marginBottom: 10 }}>Trends</div>
       <div style={{ marginBottom: 20 }}>
         {scopedCategories.map((cat) => {
           const rows = cat.fields
@@ -227,9 +250,14 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
           const withTrend = rows.filter((r) => r.t);
           if (withTrend.length === 0) return null;
           return (
-            <div key={cat.id} style={{ marginBottom: 18 }}>
+            <div key={cat.id} style={{ background: "#FFFFFF", border: "1px solid #E4E6DA", borderRadius: 14, padding: 14, marginBottom: 14 }}>
               {scope === "all" && (
-                <div style={{ fontSize: 13, fontWeight: 500, color: "#5B6459", marginBottom: 6 }}>{cat.name}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 15, background: accentLight, width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {cat.icon || "📋"}
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#1E2B22" }}>{cat.name}</span>
+                </div>
               )}
               {withTrend.map(({ field, t }) => {
                 const chartData = rangedEntries

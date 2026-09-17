@@ -13,6 +13,7 @@ function CategoryCard({
   onEditEntry,
   onDeleteEntry,
   onDeleteCategory,
+  onEditCategory,
   onUpdateIcon,
   dragHandleProps,
 }) {
@@ -240,33 +241,42 @@ function CategoryCard({
             </div>
           )}
 
-          {confirmingDelete ? (
-            <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, color: "#5B6459" }}>Delete this training and all its entries?</span>
-              <button
-                onClick={() => {
-                  setConfirmingDelete(false);
-                  onDeleteCategory();
-                }}
-                style={{ border: "none", background: "#B5432E", color: "#FFFFFF", fontSize: 12, fontWeight: 500, borderRadius: 6, padding: "5px 10px", cursor: "pointer" }}
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(false)}
-                style={{ border: "none", background: "transparent", color: "#5B6459", fontSize: 12, cursor: "pointer", padding: 0 }}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
+          <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
             <button
-              onClick={() => setConfirmingDelete(true)}
-              style={{ marginTop: 14, border: "none", background: "transparent", color: "#A9AA9C", fontSize: 12, cursor: "pointer", padding: 0 }}
+              onClick={onEditCategory}
+              style={{ border: "none", background: "transparent", color: accent, fontSize: 12, fontWeight: 500, cursor: "pointer", padding: 0 }}
             >
-              Delete this training
+              Update training
             </button>
-          )}
+
+            {confirmingDelete ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 12, color: "#5B6459" }}>Delete this training and all its entries?</span>
+                <button
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    onDeleteCategory();
+                  }}
+                  style={{ border: "none", background: "#B5432E", color: "#FFFFFF", fontSize: 12, fontWeight: 500, borderRadius: 6, padding: "5px 10px", cursor: "pointer" }}
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  style={{ border: "none", background: "transparent", color: "#5B6459", fontSize: 12, cursor: "pointer", padding: 0 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                style={{ border: "none", background: "transparent", color: "#A9AA9C", fontSize: 12, cursor: "pointer", padding: 0 }}
+              >
+                Delete this training
+              </button>
+            )}
+          </div>
         </div>
       )}
 
