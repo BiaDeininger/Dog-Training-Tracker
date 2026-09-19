@@ -496,6 +496,7 @@ function App() {
           ) : (
             activeDog && (
               <AnalysisView
+                key={activeDog.id}
                 dog={activeDog}
                 categories={dogCategories}
                 entries={state.entries.filter((e) => dogCategories.some((c) => c.id === e.categoryId))}
