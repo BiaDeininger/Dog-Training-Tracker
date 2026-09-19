@@ -200,6 +200,45 @@ function App() {
     if (celebrationResult) triggerCelebration(celebrationResult);
   };
 
+  // Field/step/task ids are minted fresh per dog even for same-named trainings
+  // (see coreCategoryDefs in storage.js and the templates in
+  // trainingTemplates.js), so a payload built against one dog's category
+  // can't be reused as-is for another dog's — its values/stepId/taskChecks
+  // are keyed by ids the other dog's category doesn't have. Remap them by
+  // matching label, the same way the category itself is matched by name.
+  const remapPayloadForCategory = (sourceCategory, targetCategory, payload) => {
+    if (targetCategory.id === sourceCategory.id) return payload;
+    const sameLabel = (label) => (item) => item.label.trim().toLowerCase() === label.trim().toLowerCase();
+
+    const values = {};
+    Object.entries(payload.values || {}).forEach(([fieldId, v]) => {
+      const sourceField = sourceCategory.fields.find((f) => f.id === fieldId);
+      const targetField = sourceField && targetCategory.fields.find(sameLabel(sourceField.label));
+      if (targetField) values[targetField.id] = v;
+    });
+    const next = { ...payload, values };
+
+    if (payload.stepId) {
+      const sourceStep = sourceCategory.steps?.find((s) => s.id === payload.stepId);
+      const targetStep = sourceStep && targetCategory.steps?.find(sameLabel(sourceStep.label));
+      if (targetStep) {
+        next.stepId = targetStep.id;
+        const taskChecks = {};
+        Object.entries(payload.taskChecks || {}).forEach(([taskId, checked]) => {
+          const sourceTask = sourceStep.tasks.find((t) => t.id === taskId);
+          const targetTask = sourceTask && targetStep.tasks.find(sameLabel(sourceTask.label));
+          if (targetTask) taskChecks[targetTask.id] = checked;
+        });
+        next.taskChecks = taskChecks;
+      } else {
+        delete next.stepId;
+        delete next.taskChecks;
+      }
+    }
+
+    return next;
+  };
+
   // Logs the same session against several dogs at once (e.g. a walk done
   // with two dogs together), matching each other selected dog's training by
   // name since trainings are separate per-dog records. One persist() call so
@@ -215,7 +254,11 @@ function App() {
       )
       .filter(Boolean);
 
-    const newEntries = targets.map((cat) => ({ id: uid(), categoryId: cat.id, ...payload }));
+    const newEntries = targets.map((cat) => ({
+      id: uid(),
+      categoryId: cat.id,
+      ...remapPayloadForCategory(category, cat, payload),
+    }));
     persist({ ...state, entries: [...state.entries, ...newEntries] });
     setEntryModalCategory(null);
 
