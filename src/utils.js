@@ -154,6 +154,21 @@ function computeStreak(entries) {
 
 const scaleColors = ["#C9CFC0", "#A9BB9C", "#87A874", "#639922", "#3B6D11"];
 
+// Half-step scale values (1.5, 2.5, ...) get a color blended between the
+// two whole steps they sit between, so e.g. 3.5 reads as "between 3 and 4"
+// rather than jumping straight to 4's color.
+function scaleColorFor(v) {
+  const lo = Math.floor(v) - 1;
+  const hi = Math.min(lo + 1, scaleColors.length - 1);
+  const t = v - Math.floor(v);
+  if (t === 0) return scaleColors[lo];
+  const toRgb = (hex) => hex.match(/\w\w/g).map((h) => parseInt(h, 16));
+  const [r1, g1, b1] = toRgb(scaleColors[lo]);
+  const [r2, g2, b2] = toRgb(scaleColors[hi]);
+  const mix = (a, b) => Math.round(a + (b - a) * t).toString(16).padStart(2, "0");
+  return `#${mix(r1, r2)}${mix(g1, g2)}${mix(b1, b2)}`;
+}
+
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",

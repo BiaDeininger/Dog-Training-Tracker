@@ -203,3 +203,41 @@ test("editing a training: adding/removing tracked fields doesn't wipe already-lo
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
+
+test("half-step rating: a scale field can be logged at a .5 value", async ({ page }) => {
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+  page.on("pageerror", (err) => consoleErrors.push(err.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "+ Add your first dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Rex");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await page.getByRole("button", { name: "+ New training for Rex" }).click();
+  await page.getByRole("button", { name: "+ Build your own training" }).click();
+  await page.getByPlaceholder("Recall training").fill("Focus work");
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").first().fill("Mood");
+  await page.locator("select").nth(0).selectOption("scale");
+  await page.getByRole("button", { name: "Create training" }).click();
+
+  await page.getByRole("button", { name: "Focus work", exact: false }).click();
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+
+  // The scale picker's pills each split into a whole-number top half and a
+  // half-step bottom half; tapping "2.5" should log that exact value.
+  await page.getByRole("button", { name: "2.5", exact: true }).click();
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("Session logged")).toBeVisible();
+  await expect(page.getByText("Mood: 2.5")).toBeVisible();
+
+  // Survives a reload like everything else.
+  await page.reload();
+  await page.getByRole("button", { name: "Focus work", exact: false }).click();
+  await expect(page.getByText("Mood: 2.5")).toBeVisible();
+
+  expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
+});

@@ -2,28 +2,90 @@
 
 const { useState, useRef } = React;
 
+// Each whole number (1-5) is its own pill, same as before. A pill below 5
+// is split into a top half (the whole number) and a bottom half (that
+// number plus 0.5), so half-steps are one tap away without adding a
+// separate row of controls.
 function ScalePicker({ value, onChange }) {
   return (
     <div style={{ display: "flex", gap: 6 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => onChange(n)}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: value === n ? "2px solid #1E2B22" : "1px solid #D7DACB",
-            background: value === n ? scaleColors[n - 1] : "#FFFFFF",
-            color: value === n ? "#17240F" : "#5B6459",
-            fontWeight: 500,
-            cursor: "pointer",
-          }}
-        >
-          {n}
-        </button>
-      ))}
+      {[1, 2, 3, 4, 5].map((n) => {
+        const half = n + 0.5;
+        const hasHalf = n < 5;
+        const topSelected = value === n;
+        const bottomSelected = value === half;
+
+        if (!hasHalf) {
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              style={{
+                width: 36,
+                height: 48,
+                borderRadius: 8,
+                border: topSelected ? "2px solid #1E2B22" : "1px solid #D7DACB",
+                background: topSelected ? scaleColors[n - 1] : "#FFFFFF",
+                color: topSelected ? "#17240F" : "#5B6459",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              {n}
+            </button>
+          );
+        }
+
+        return (
+          <div
+            key={n}
+            style={{
+              width: 36,
+              height: 48,
+              borderRadius: 8,
+              overflow: "hidden",
+              border: topSelected || bottomSelected ? "2px solid #1E2B22" : "1px solid #D7DACB",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onChange(n)}
+              style={{
+                flex: 1,
+                border: "none",
+                borderBottom: "1px solid #E4E6DA",
+                background: topSelected ? scaleColors[n - 1] : "#FFFFFF",
+                color: topSelected ? "#17240F" : "#5B6459",
+                fontWeight: 500,
+                fontSize: 14,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              {n}
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(half)}
+              style={{
+                flex: 1,
+                border: "none",
+                background: bottomSelected ? scaleColorFor(half) : "#FBFAF6",
+                color: bottomSelected ? "#17240F" : "#8B8F7F",
+                fontWeight: 500,
+                fontSize: 10,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              {half}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
