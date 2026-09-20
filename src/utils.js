@@ -11,6 +11,7 @@ const nowTimeStr = () => {
 const FIELD_TYPES = {
   scale: { label: "Scale (1–5)" },
   number: { label: "Number" },
+  time: { label: "Time (m:ss)" },
   text: { label: "Note only" },
 };
 
@@ -39,6 +40,50 @@ function normalizeTimeInput(raw, fallback) {
   const m = match[2] !== undefined ? parseInt(match[2], 10) : 0;
   if (Number.isNaN(h) || Number.isNaN(m) || h > 23 || m > 59) return fallback;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// Parses free-typed "m:ss" text ("8:30", "830", "8") for a "time" field
+// into a normalized "M:SS" string (unpadded minutes, zero-padded seconds).
+// Mirrors normalizeTimeInput's forgiving parsing, but minutes aren't capped
+// at 24 (a duration/pace can run well past an hour) and a colon-less value
+// under 3 digits is read as whole minutes rather than MSS.
+function normalizeDurationInput(raw, fallback) {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return "";
+  let minPart, secPart;
+  if (trimmed.includes(":")) {
+    [minPart, secPart = "0"] = trimmed.split(":");
+  } else if (trimmed.length > 2) {
+    minPart = trimmed.slice(0, -2);
+    secPart = trimmed.slice(-2);
+  } else {
+    minPart = trimmed;
+    secPart = "0";
+  }
+  if (!/^\d{1,4}$/.test(minPart) || !/^\d{1,2}$/.test(secPart)) return fallback;
+  const mins = parseInt(minPart, 10);
+  const secs = parseInt(secPart, 10);
+  if (secs > 59) return fallback;
+  return `${mins}:${String(secs).padStart(2, "0")}`;
+}
+
+// Converts a normalized "M:SS" duration string to total seconds, for trend
+// averaging and personal-best comparisons. Logged values are always shown
+// as the "M:SS" string itself — this is only for the math.
+function durationToSeconds(str) {
+  if (typeof str !== "string" || !str.includes(":")) return NaN;
+  const [m, s] = str.split(":").map(Number);
+  if (Number.isNaN(m) || Number.isNaN(s)) return NaN;
+  return m * 60 + s;
+}
+
+// The inverse of durationToSeconds, used only for values computed from raw
+// seconds (a trend average) rather than a value read straight from storage.
+function fmtDuration(totalSeconds) {
+  const rounded = Math.round(totalSeconds);
+  const sign = rounded < 0 ? "-" : "";
+  const abs = Math.abs(rounded);
+  return `${sign}${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, "0")}`;
 }
 
 // "Rex" | "Rex & Luna" | "Rex, Luna & Fido"
@@ -79,11 +124,11 @@ function ageFromBirthday(birthday) {
   return `${years}y ${months}m old`;
 }
 
-function fieldTrend(entries, categoryId, fieldId) {
+function fieldTrend(entries, categoryId, fieldId, parse = Number) {
   const vals = entries
     .filter((e) => e.categoryId === categoryId && e.values[fieldId] !== undefined && e.values[fieldId] !== "")
     .sort((a, b) => (a.date < b.date ? -1 : 1))
-    .map((e) => Number(e.values[fieldId]))
+    .map((e) => parse(e.values[fieldId]))
     .filter((n) => !Number.isNaN(n));
   if (vals.length < 2) return null;
   const mid = Math.ceil(vals.length / 2);

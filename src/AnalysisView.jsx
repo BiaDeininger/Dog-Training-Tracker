@@ -246,7 +246,7 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
         {scopedCategories.map((cat) => {
           const rows = cat.fields
             .filter((f) => f.type !== "text")
-            .map((f) => ({ field: f, t: fieldTrend(rangedEntries, cat.id, f.id) }));
+            .map((f) => ({ field: f, t: fieldTrend(rangedEntries, cat.id, f.id, f.type === "time" ? durationToSeconds : Number) }));
           const withTrend = rows.filter((r) => r.t);
           if (withTrend.length === 0) return null;
           return (
@@ -263,14 +263,27 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
                 const chartData = rangedEntries
                   .filter((e) => e.categoryId === cat.id && e.values[field.id] !== undefined && e.values[field.id] !== "")
                   .sort((a, b) => (a.date < b.date ? -1 : 1))
-                  .map((e) => ({ date: fmtDate(e.date), value: Number(e.values[field.id]) }));
+                  .map((e) => ({
+                    date: fmtDate(e.date),
+                    value: field.type === "time" ? durationToSeconds(e.values[field.id]) : Number(e.values[field.id]),
+                  }));
                 return (
                   <div key={field.id} style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", fontSize: 13 }}>
                       <span style={{ color: "#1E2B22" }}>{field.label}</span>
                       <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#5B6459" }}>
-                        {t.a1.toFixed(1)} → {t.a2.toFixed(1)}
-                        {field.unit ? ` ${field.unit}` : ""} <TrendArrow delta={t.delta} />
+                        {field.type === "time" ? (
+                          <React.Fragment>
+                            {fmtDuration(t.a1)} → {fmtDuration(t.a2)}
+                          </React.Fragment>
+                        ) : (
+                          <React.Fragment>
+                            {t.a1.toFixed(1)} → {t.a2.toFixed(1)}
+                            {field.unit ? ` ${field.unit}` : ""}
+                          </React.Fragment>
+                        )}
+                        {" "}
+                        <TrendArrow delta={t.delta} />
                       </span>
                     </div>
                     <MiniChart data={chartData} color={accent} />
@@ -280,7 +293,11 @@ function AnalysisView({ dog, categories, entries, accent, accentLight, aiConfig,
             </div>
           );
         })}
-        {scopedCategories.every((cat) => cat.fields.filter((f) => f.type !== "text").every((f) => !fieldTrend(rangedEntries, cat.id, f.id))) && (
+        {scopedCategories.every((cat) =>
+          cat.fields
+            .filter((f) => f.type !== "text")
+            .every((f) => !fieldTrend(rangedEntries, cat.id, f.id, f.type === "time" ? durationToSeconds : Number))
+        ) && (
           <p style={{ fontSize: 13, color: "#5B6459" }}>
             Not enough sessions in this range yet — log at least two per training, or widen the date range.
           </p>

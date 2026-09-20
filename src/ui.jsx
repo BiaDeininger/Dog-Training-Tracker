@@ -90,6 +90,92 @@ function ScalePicker({ value, onChange }) {
   );
 }
 
+// One row of the "what do you want to track?" field builder, shared by
+// AddCategoryModal and EditCategoryModal. A number or time field can also
+// say whether a higher or lower logged value is the better one, so
+// gamification.js knows which direction counts as a personal best (e.g. a
+// faster pace is a *lower* time, not a higher one).
+function FieldEditorRow({ field, onChange, onRemove, loggedCount }) {
+  const tracksDirection = field.type === "number" || field.type === "time";
+  return (
+    <div style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: 10 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <input
+          style={{ ...inputStyle, flex: 1 }}
+          placeholder="e.g. Recall speed, Distraction level"
+          value={field.label}
+          onChange={(e) => onChange({ label: e.target.value })}
+        />
+        {onRemove && (
+          <button
+            onClick={onRemove}
+            aria-label="Remove field"
+            style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", fontSize: 16 }}
+          >
+            🗑
+          </button>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <select
+          style={{ ...inputStyle, flex: 1 }}
+          value={field.type}
+          onChange={(e) => onChange({ type: e.target.value })}
+        >
+          {Object.entries(FIELD_TYPES).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        {field.type === "number" && (
+          <input
+            style={{ ...inputStyle, flex: 1 }}
+            placeholder="unit (sec, m, %) - optional"
+            value={field.unit}
+            onChange={(e) => onChange({ unit: e.target.value })}
+          />
+        )}
+      </div>
+      {tracksDirection && (
+        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+          {[
+            { key: "higher", label: "↑ Higher is better" },
+            { key: "lower", label: "↓ Lower is better" },
+          ].map((opt) => {
+            const active = (field.better || "higher") === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => onChange({ better: opt.key })}
+                style={{
+                  flex: 1,
+                  padding: "7px 6px",
+                  borderRadius: 8,
+                  border: active ? "2px solid #1E2B22" : "1px solid #D7DACB",
+                  background: active ? "#EDF1E6" : "#FFFFFF",
+                  color: active ? "#1E2B22" : "#5B6459",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {loggedCount > 0 && (
+        <div style={{ fontSize: 11.5, color: "#8B8F7F", marginTop: 6 }}>
+          Logged in {loggedCount} session{loggedCount === 1 ? "" : "s"}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Modal({ title, onClose, children }) {
   return (
     <div

@@ -3,30 +3,38 @@
 // be unit-reasoned-about independently of how App.jsx and Achievements.jsx
 // render it.
 
-// Only "number" fields are checked for personal bests. "scale" fields (1-5)
-// get their own perfect-score check below instead, since hitting the top of
-// a 1-5 scale isn't a "record" to keep beating the way a growing number is.
-// Checks personal bests before perfect scores; only one celebration fires
-// per entry so they never stack.
+// "number" and "time" fields are checked for personal bests. "scale" fields
+// (1-5) get their own perfect-score check below instead, since hitting the
+// top of a 1-5 scale isn't a "record" to keep beating the way a growing
+// number is. A field defaults to "higher is better" (a longer duration, a
+// faster count) unless it's marked `better: "lower"` (a faster pace, a
+// shorter time) — see FieldEditorRow in ui.jsx for where that's set. Checks
+// personal bests before perfect scores; only one celebration fires per
+// entry so they never stack.
 function detectCelebration(category, priorEntries, savedEntry) {
-  const numberFields = category.fields.filter((f) => f.type === "number");
-  for (const f of numberFields) {
+  const parseFieldValue = (f, raw) => (f.type === "time" ? durationToSeconds(raw) : Number(raw));
+
+  const trackedFields = category.fields.filter((f) => f.type === "number" || f.type === "time");
+  for (const f of trackedFields) {
     const raw = savedEntry.values[f.id];
     if (raw === undefined || raw === "") continue;
-    const val = Number(raw);
+    const val = parseFieldValue(f, raw);
     if (Number.isNaN(val)) continue;
 
     const priorValues = priorEntries
       .map((e) => e.values[f.id])
       .filter((v) => v !== undefined && v !== "")
-      .map(Number)
+      .map((v) => parseFieldValue(f, v))
       .filter((n) => !Number.isNaN(n));
     if (priorValues.length === 0) continue; // no baseline yet, nothing to beat
 
-    if (val > Math.max(...priorValues)) {
+    const isRecord =
+      f.better === "lower" ? val < Math.min(...priorValues) : val > Math.max(...priorValues);
+    if (isRecord) {
+      const shown = f.type === "time" ? raw : `${val}${f.unit ? ` ${f.unit}` : ""}`;
       return {
         type: "personal-best",
-        message: `New record: ${val}${f.unit ? ` ${f.unit}` : ""} ${f.label}!`,
+        message: `New record: ${shown} ${f.label}!`,
       };
     }
   }

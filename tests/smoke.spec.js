@@ -241,3 +241,50 @@ test("half-step rating: a scale field can be logged at a .5 value", async ({ pag
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
+
+test("time field with 'lower is better': a slower pace doesn't trigger a personal best, a faster one does", async ({ page }) => {
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+  page.on("pageerror", (err) => consoleErrors.push(err.message));
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "+ Add your first dog" }).click();
+  await page.getByPlaceholder("New dog's name").fill("Rex");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await page.getByRole("button", { name: "+ New training for Rex" }).click();
+  await page.getByRole("button", { name: "+ Build your own training" }).click();
+  await page.getByPlaceholder("Recall training").fill("Canicross");
+  await page.getByPlaceholder("e.g. Recall speed, Distraction level").first().fill("Pace");
+  await page.locator("select").nth(0).selectOption("time");
+  await page.getByRole("button", { name: /Lower is better/ }).click();
+  await page.getByRole("button", { name: "Create training" }).click();
+
+  await page.getByRole("button", { name: "Canicross", exact: false }).click();
+
+  // First session just sets the baseline — nothing to beat yet.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.getByPlaceholder("m:ss").fill("7:30");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("Session logged")).toBeVisible();
+
+  // A slower (higher) pace is worse, not a record, even though the raw
+  // number went up — this is the exact bug report: pace is "lower is
+  // better", so this must NOT be cheered as a personal best.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.getByPlaceholder("m:ss").fill("8:30");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("Session logged")).toBeVisible();
+  await expect(page.getByText("New record:")).toHaveCount(0);
+
+  // A genuinely faster pace should still be recognized as a record.
+  await page.getByRole("button", { name: "+ Log a session" }).click();
+  await page.getByPlaceholder("m:ss").fill("6:45");
+  await page.getByRole("button", { name: "Save entry" }).click();
+  await expect(page.getByText("New record: 6:45 Pace!")).toBeVisible();
+
+  expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
+});

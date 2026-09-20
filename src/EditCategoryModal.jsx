@@ -89,54 +89,15 @@ function EditCategoryModal({ category, entries, onClose, onSave }) {
 
       <label style={labelStyle}>Tracked fields</label>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
-        {activeFields.map((f) => {
-          const loggedCount = loggedCountFor(f.id);
-          return (
-            <div key={f.id} style={{ border: "1px solid #EAEAE0", borderRadius: 10, padding: 10 }}>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                <input
-                  style={{ ...inputStyle, flex: 1 }}
-                  placeholder="e.g. Recall speed, Distraction level"
-                  value={f.label}
-                  onChange={(e) => updateField(f.id, { label: e.target.value })}
-                />
-                <button
-                  onClick={() => removeField(f.id)}
-                  aria-label="Remove field"
-                  style={{ border: "none", background: "transparent", color: "#B5432E", cursor: "pointer", fontSize: 16 }}
-                >
-                  🗑
-                </button>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <select
-                  style={{ ...inputStyle, flex: 1 }}
-                  value={f.type}
-                  onChange={(e) => updateField(f.id, { type: e.target.value })}
-                >
-                  {Object.entries(FIELD_TYPES).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
-                {f.type === "number" && (
-                  <input
-                    style={{ ...inputStyle, flex: 1 }}
-                    placeholder="unit (sec, m, %) - optional"
-                    value={f.unit}
-                    onChange={(e) => updateField(f.id, { unit: e.target.value })}
-                  />
-                )}
-              </div>
-              {loggedCount > 0 && (
-                <div style={{ fontSize: 11.5, color: "#8B8F7F", marginTop: 6 }}>
-                  Logged in {loggedCount} session{loggedCount === 1 ? "" : "s"}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {activeFields.map((f) => (
+          <FieldEditorRow
+            key={f.id}
+            field={f}
+            onChange={(patch) => updateField(f.id, patch)}
+            onRemove={() => removeField(f.id)}
+            loggedCount={loggedCountFor(f.id)}
+          />
+        ))}
       </div>
 
       <button

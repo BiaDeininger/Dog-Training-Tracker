@@ -210,6 +210,17 @@ function AddEntryModal({ category, entry, categoryEntries = [], dogs = [], dogAc
               onChange={(e) => setVal(f.id, e.target.value)}
             />
           )}
+          {f.type === "time" && (
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="m:ss"
+              style={inputStyle}
+              value={values[f.id] ?? ""}
+              onChange={(e) => setVal(f.id, e.target.value)}
+              onBlur={() => setValues((old) => ({ ...old, [f.id]: normalizeDurationInput(old[f.id], "") }))}
+            />
+          )}
           {f.type === "text" && (
             <React.Fragment>
               <input
