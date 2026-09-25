@@ -457,6 +457,7 @@ function App() {
           {view === "profile" ? (
             activeDog && (
               <DogProfileView
+                key={activeDog.id}
                 dog={activeDog}
                 accent={accent}
                 accentLight={accentLight}
