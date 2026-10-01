@@ -102,14 +102,25 @@ test("multi-dog logging: one session can be logged for two dogs at once", async 
   await page.getByRole("button", { name: "Luna", exact: true }).last().click();
   await expect(page.getByText("Logs this session for 2 dogs at once.")).toBeVisible();
 
+  // Fill every field type the training has — each dog's copy of "Loose leash
+  // walking" has its own field ids under the hood, so this exercises the fix
+  // that remaps values/rating between dogs by label instead of id.
   await page.locator('input[type="number"]').fill("20");
+  await page.locator('input[list^="suggestions-"]').fill("Backyard");
+  await page.getByRole("button", { name: "5", exact: true }).click(); // Rating
+  await page.locator("textarea").fill("Great walk, very focused.");
   await page.getByRole("button", { name: "Save for Rex & Luna" }).click();
   await expect(page.getByText("Session logged for Rex & Luna")).toBeVisible();
 
-  // The session should now show up under Luna's own "Loose leash walking" too.
+  // The session should now show up under Luna's own "Loose leash walking" too,
+  // with the same rating, place, and notes Rex's entry got.
   await page.getByRole("button", { name: "Luna", exact: true }).click();
   await page.getByRole("button", { name: "Loose leash walking", exact: false }).click();
   await expect(page.getByText("1 entry")).toBeVisible();
+  await expect(page.getByText("Rating: 5")).toBeVisible();
+  await page.getByRole("button", { name: "Expand entry" }).first().click();
+  await expect(page.getByText("Backyard")).toBeVisible();
+  await expect(page.getByText("Great walk, very focused.")).toBeVisible();
 
   expect(consoleErrors, `Unexpected console errors:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
